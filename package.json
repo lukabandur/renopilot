@@ -1,4 +1,5 @@
-"name": "renopilot",
+{
+  "name": "renopilot",
   "version": "1.0.0",
   "scripts": {
     "dev": "next dev",
