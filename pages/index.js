@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Head from "next/head";
 
 const SYSTEM = `Du bist RenoPilot, ein freundlicher DIY-Renovierungsexperte für den deutschsprachigen Markt. Deine Nutzer sind AMATEURE. Erkläre alles einfach, konkret, auf Deutsch, motivierend. Immer mit Produktnamen, deutschen Preisen (OBI/Bauhaus/Hornbach/Amazon/IKEA). Warne bei Elektro-Festinstallation, Asbest und tragenden Wänden immer klar.`;
@@ -2012,74 +2012,58 @@ function compressImageFile(file) {
 }
 
 // ─── Markdown + Affiliate Renderer ───────────────────────────────────────────
+function AffiliateLink({ text }) {
+  var lower = text.toLowerCase();
+  var link = null;
+  if (lower.match(/fliesen|feinsteinzeug|anthrazit/)) link = amazonLink("Feinsteinzeug Fliesen Anthrazit 80x80");
+  else if (lower.match(/walk.in|glaswand|esg.glas|glasscheibe/)) link = amazonLink("Walk-In Dusche Glaswand 8mm ESG");
+  else if (lower.match(/waschtisch|waschbecken|teak.*holz|holz.*wand/)) link = amazonLink("Schwebender Waschtisch Holz Wandmontage");
+  else if (lower.match(/led.*spiegel|spiegel.*led|emke/)) link = amazonLink("LED Spiegel Bad beleuchtet IP44");
+  else if (lower.match(/armatur|mattschwarz.*arm|wasserhahn.*schwarz/)) link = amazonLink("Waschtisch Armatur mattschwarz");
+  else if (lower.match(/mikrozement/)) link = amazonLink("Mikrozement Set Boden Wand Versiegelung");
+  else if (lower.match(/spc|vinyl.*boden|luxury.*vinyl/)) link = amazonLink("SPC Vinyl Boden wasserfest Rigid Core");
+  else if (lower.match(/laminat/)) link = amazonLink("Laminat Eiche 8mm Klick Trittschall");
+  else if (lower.match(/parkett/)) link = amazonLink("Fertigparkett Eiche geoelt Click");
+  else if (lower.match(/silikon/)) link = amazonLink("Soudal Bad Silikon Schimmelschutz");
+  else if (lower.match(/led.*strip|led.*streifen/)) link = amazonLink("LED Strip 2700K warmweiss 5m dimmbar");
+  else if (lower.match(/einbaustrahler/)) link = amazonLink("LED Einbaustrahler GU10 IP44 Set");
+  else if (lower.match(/pendelleuchte|haengelampe/)) link = amazonLink("Pendelleuchte Schwarz Kueche");
+  else if (lower.match(/griffe|schrankgriff/)) link = amazonLink("Kuechen Griffe mattschwarz 128mm Set");
+  else if (lower.match(/wandfarbe|wandlack/)) link = amazonLink("Wandfarbe Erdtöne seidenmatt");
+  else if (lower.match(/paneele|wandpaneel|fluted/)) link = amazonLink("Wandpaneele MDF Holzoptik selbstklebend");
+  else if (lower.match(/osmo|hartwachs/)) link = amazonLink("Osmo Hartwachsoel 3032 750ml");
+  else if (lower.match(/wpc.*diele|terrassen.*diele/)) link = amazonLink("WPC Dielen Terrasse Holzoptik Clip");
+  if (!link) return null;
+  return (
+    <a href={link} target="_blank" rel="noopener noreferrer" style={{ flexShrink: 0, background: "#F0F5EC", color: "#3a7a56", borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap", marginLeft: 8 }}>
+      Amazon →
+    </a>
+  );
+}
+
+function BoldText({ text }) {
+  var parts = text.split(/\*\*(.*?)\*\*/g);
+  return (
+    <span>
+      {parts.map(function(part, j) {
+        if (j % 2 === 1) return <strong key={j} style={{ color: C.text, fontWeight: 700 }}>{part}</strong>;
+        return <span key={j}>{part}</span>;
+      })}
+    </span>
+  );
+}
+
 function renderMaterialien(text) {
   if (!text) return null;
-  var lines = text.split("\n");
-  return lines.map(function(line, i) {
-    if (!line.trim()) return React.createElement("div", { key: i, style: { height: 8 } });
-
-    // Render bold **text**
-    var parts = line.split(/\*\*(.*?)\*\*/g);
-    var rendered = parts.map(function(part, j) {
-      if (j % 2 === 1) return React.createElement("strong", { key: j, style: { color: C.text, fontWeight: 700 } }, part);
-      return part;
-    });
-
-    // Check if line has a product keyword for affiliate link
-    var lowerLine = line.toLowerCase();
-    var affiliateLink = null;
-    var linkLabel = null;
-
-    if (lowerLine.match(/fliesen|feinsteinzeug|anthrazit.*fliesen|fliesen.*anthrazit/)) {
-      affiliateLink = amazonLink("Feinsteinzeug Fliesen Anthrazit 80x80"); linkLabel = "Amazon";
-    } else if (lowerLine.match(/walk.in.*dusche|dusche.*glas|glaswand|esg.glas|glasscheibe/)) {
-      affiliateLink = amazonLink("Walk-In Dusche Glaswand 8mm ESG"); linkLabel = "Amazon";
-    } else if (lowerLine.match(/waschtisch|waschbecken|unterschrank.*holz|teak.*holz.*wand/)) {
-      affiliateLink = amazonLink("Schwebender Waschtisch Holz Wandmontage"); linkLabel = "Amazon";
-    } else if (lowerLine.match(/led.*spiegel|spiegel.*led|emke|aquamarin.*spiegel/)) {
-      affiliateLink = amazonLink("LED Spiegel Bad beleuchtet IP44 Emke"); linkLabel = "Amazon";
-    } else if (lowerLine.match(/armatur|mattschwarz.*armatur|armatur.*mattschwarz|wasserhahn.*schwarz/)) {
-      affiliateLink = amazonLink("Waschtisch Armatur mattschwarz"); linkLabel = "Amazon";
-    } else if (lowerLine.match(/mikrozement|mikro.zement/)) {
-      affiliateLink = amazonLink("Mikrozement Set Boden Wand Versiegelung"); linkLabel = "Amazon";
-    } else if (lowerLine.match(/vinyl|spc.*boden|luxury.*vinyl|klick.*boden/)) {
-      affiliateLink = amazonLink("SPC Vinyl Boden wasserfest Rigid Core 5mm"); linkLabel = "Amazon";
-    } else if (lowerLine.match(/laminat/)) {
-      affiliateLink = amazonLink("Laminat Eiche 8mm Klick Trittschall"); linkLabel = "Amazon";
-    } else if (lowerLine.match(/parkett/)) {
-      affiliateLink = amazonLink("Fertigparkett Eiche geoelt Click"); linkLabel = "Amazon";
-    } else if (lowerLine.match(/silikon|silikonfuge/)) {
-      affiliateLink = amazonLink("Soudal Bad Silikon Schimmelschutz"); linkLabel = "Amazon";
-    } else if (lowerLine.match(/led.*strip|led.*streifen|led.*leiste/)) {
-      affiliateLink = amazonLink("LED Strip 2700K warmweiss 5m dimmbar"); linkLabel = "Amazon";
-    } else if (lowerLine.match(/einbaustrahler|einbau.*strahler/)) {
-      affiliateLink = amazonLink("LED Einbaustrahler GU10 IP44 Set"); linkLabel = "Amazon";
-    } else if (lowerLine.match(/pendelleuchte|haengelampe|pendellampe/)) {
-      affiliateLink = amazonLink("Pendelleuchte Schwarz Kueche Esstisch"); linkLabel = "Amazon";
-    } else if (lowerLine.match(/griffe|tuergriff|schrankgriff/)) {
-      affiliateLink = amazonLink("Kuechen Griffe mattschwarz 128mm Set 20"); linkLabel = "Amazon";
-    } else if (lowerLine.match(/tapete|vlies.*tapete/)) {
-      affiliateLink = amazonLink("Vliestapete Strukturtapete modern"); linkLabel = "Amazon";
-    } else if (lowerLine.match(/wandfarbe|wandlack|kreidefarbe/)) {
-      affiliateLink = amazonLink("Wandfarbe Erdtöne seidenmatt Terrakotta"); linkLabel = "Amazon";
-    } else if (lowerLine.match(/paneele|wandpaneel|holzpaneel|fluted/)) {
-      affiliateLink = amazonLink("Wandpaneele MDF Holzoptik selbstklebend"); linkLabel = "Amazon";
-    } else if (lowerLine.match(/dichtschl|abdicht|kerdi/)) {
-      affiliateLink = amazonLink("Dichtschlaemme 2K Dusche Abdichtung Bad"); linkLabel = "Amazon";
-    } else if (lowerLine.match(/osmo|hartwachs.*oel|holzoel/)) {
-      affiliateLink = amazonLink("Osmo Hartwachsoel 3032 750ml"); linkLabel = "Amazon";
-    } else if (lowerLine.match(/wpc.*diele|holzdiele|terrassen.*diele/)) {
-      affiliateLink = amazonLink("WPC Dielen Terrasse Holzoptik Clip"); linkLabel = "Amazon";
-    }
-
-    return React.createElement("div", { key: i, style: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 6 } },
-      React.createElement("p", { style: { fontSize: 13, color: "#555", lineHeight: 1.7, flex: 1 } }, rendered),
-      affiliateLink ? React.createElement("a", {
-        href: affiliateLink,
-        target: "_blank",
-        rel: "noopener noreferrer",
-        style: { flexShrink: 0, background: "#F0F5EC", color: "#3a7a56", borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap" },
-      }, "Amazon →") : null
+  return text.split("\n").map(function(line, i) {
+    if (!line.trim()) return <div key={i} style={{ height: 6 }} />;
+    return (
+      <div key={i} style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 6 }}>
+        <p style={{ fontSize: 13, color: "#555", lineHeight: 1.7, flex: 1 }}>
+          <BoldText text={line} />
+        </p>
+        <AffiliateLink text={line} />
+      </div>
     );
   });
 }
