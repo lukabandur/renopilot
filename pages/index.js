@@ -2043,11 +2043,7 @@ function MakeoverTab({ onSaveToPlaner }) {
       return fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          imageBase64: base64,
-          style: stil,
-          chatContext: wunsch || null,
-        }),
+        body: JSON.stringify({ imageBase64: base64, style: stil, chatContext: wunsch || null }),
       });
     }).then(function(res) { return res.json(); })
     .then(function(data) {
@@ -2077,10 +2073,9 @@ function MakeoverTab({ onSaveToPlaner }) {
 
   return (
     <div style={{ overflowY: "auto", height: "100%", padding: "16px 16px 40px" }}>
-      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, marginBottom: 4 }}>✨ KI Makeover</h2>
-      <p style={{ fontSize: 13, color: C.muted, marginBottom: 16 }}>Foto hochladen → Stil wählen → KI generiert dein Nachher-Bild</p>
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, marginBottom: 4 }}>KI Makeover</h2>
+      <p style={{ fontSize: 13, color: C.muted, marginBottom: 16 }}>Foto hochladen, Stil wählen, KI generiert Nachher-Bild</p>
 
-      {/* Wunsch-Chat */}
       <div style={{ marginBottom: 16 }}>
         <button onClick={function() { setChatOpen(!chatOpen); }} style={{
           width: "100%", padding: "10px 14px", borderRadius: 10,
@@ -2091,27 +2086,24 @@ function MakeoverTab({ onSaveToPlaner }) {
           fontFamily: "'DM Sans', sans-serif",
           display: "flex", alignItems: "center", justifyContent: "space-between",
         }}>
-          <span>💬 {wunsch ? "Wünsche: " + wunsch.slice(0, 35) + (wunsch.length > 35 ? "…" : "") : "Meine Wünsche beschreiben (optional)"}</span>
-          <span>{chatOpen ? "▲" : "▼"}</span>
+          <span>{"Meine Wunsche" + (wunsch ? ": " + wunsch.slice(0, 30) + "..." : " (optional)")}</span>
+          <span>{chatOpen ? "Schliessen" : "Beschreiben"}</span>
         </button>
         {chatOpen && (
-          <div className="fu" style={{ border: "1px solid " + C.border, borderTop: "none", borderRadius: "0 0 10px 10px", padding: "10px 12px", background: C.card }}>
+          <div style={{ border: "1px solid " + C.border, borderTop: "none", borderRadius: "0 0 10px 10px", padding: "10px 12px", background: C.card }}>
             <textarea
               value={wunsch}
               onChange={function(e) { setWunsch(e.target.value); }}
-              placeholder="z.B. Keine Badewanne, dunkle Fliesen, Walk-In Dusche, Budget 2000€..."
+              placeholder="z.B. Keine Badewanne, dunkle Fliesen, Walk-In Dusche, Budget 2000 Euro..."
               rows={3}
               style={{ width: "100%", border: "1px solid " + C.border, borderRadius: 8, padding: "8px 10px", fontSize: 13, resize: "none", fontFamily: "'DM Sans', sans-serif", background: C.bg }}
             />
-            <p style={{ fontSize: 11, color: C.muted, marginTop: 6 }}>
-              💡 Die KI berücksichtigt deine Wünsche beim Generieren des Bildes
-            </p>
+            <p style={{ fontSize: 11, color: C.muted, marginTop: 6 }}>Die KI beruecksichtigt deine Wuensche beim Generieren</p>
           </div>
         )}
       </div>
 
-      {/* Stil */}
-      <p style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>Basis-Stil wählen</p>
+      <p style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>Stil waehlen</p>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 20 }}>
         {STILE_MAKEOVER.map(function(s) {
           return (
@@ -2123,13 +2115,12 @@ function MakeoverTab({ onSaveToPlaner }) {
               fontSize: 12, fontWeight: stil === s.id ? 600 : 400,
               fontFamily: "'DM Sans', sans-serif",
             }}>
-              {s.emoji} {s.label}
+              {s.label}
             </button>
           );
         })}
       </div>
 
-      {/* Foto Upload */}
       <div onClick={function() { fileRef.current.click(); }} style={{
         border: "2px dashed " + (vorherUrl ? C.accent : C.border),
         borderRadius: 16, overflow: "hidden",
@@ -2139,11 +2130,11 @@ function MakeoverTab({ onSaveToPlaner }) {
       }}>
         {vorherUrl
           ? <img src={vorherUrl} alt="Vorher" style={{ width: "100%", display: "block", maxHeight: 280, objectFit: "cover" }} />
-          : <>
-              <div style={{ fontSize: 44, marginBottom: 10 }}>📷</div>
-              <p style={{ fontWeight: 600, fontSize: 16, color: C.text, marginBottom: 4 }}>Foto hochladen</p>
-              <p style={{ fontSize: 13, color: C.muted }}>Tippe um ein Foto zu wählen</p>
-            </>
+          : <div>
+              <p style={{ fontSize: 40, marginBottom: 10 }}>Foto hochladen</p>
+              <p style={{ fontWeight: 600, fontSize: 16, color: C.text, marginBottom: 4 }}>Tippe hier</p>
+              <p style={{ fontSize: 13, color: C.muted }}>Bad, Kueche, Wohnzimmer...</p>
+            </div>
         }
       </div>
       <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleDatei} />
@@ -2155,9 +2146,8 @@ function MakeoverTab({ onSaveToPlaner }) {
           color: loading ? "#999" : "white", border: "none", borderRadius: 50,
           fontSize: 15, fontWeight: 700, cursor: loading ? "default" : "pointer",
           fontFamily: "'DM Sans', sans-serif",
-          boxShadow: loading ? "none" : "0 4px 16px rgba(196,98,45,0.3)",
         }}>
-          {loading ? "⏳ KI generiert Bild (15-30 Sek.)…" : "✨ Makeover generieren"}
+          {loading ? "KI generiert Bild..." : "Makeover generieren"}
         </button>
       )}
 
@@ -2167,7 +2157,7 @@ function MakeoverTab({ onSaveToPlaner }) {
             <div style={{ height: "100%", width: progress + "%", background: C.accent, borderRadius: 3, transition: "width 0.6s" }} />
           </div>
           <p style={{ fontSize: 12, color: C.muted, textAlign: "center" }}>
-            {progress < 40 ? "Bild wird analysiert…" : progress < 80 ? "KI erstellt dein Makeover…" : "Fast fertig…"}
+            {progress < 40 ? "Bild wird analysiert..." : progress < 80 ? "KI generiert Makeover..." : "Fast fertig..."}
           </p>
         </div>
       )}
@@ -2181,49 +2171,36 @@ function MakeoverTab({ onSaveToPlaner }) {
 
       {nachherUrl && (
         <div>
-          <div style={{ display: "flex", gap: 8, marginBottom: 10, alignItems: "center" }}>
-            <div style={{ flex: 1, height: 2, background: C.border }} />
-            <span style={{ fontSize: 12, color: C.accent, fontWeight: 700 }}>✨ NACHHER</span>
-            <div style={{ flex: 1, height: 2, background: C.border }} />
-          </div>
-
           <div style={{ borderRadius: 14, overflow: "hidden", marginBottom: 12, boxShadow: "0 6px 24px rgba(0,0,0,0.1)" }}>
             <img src={nachherUrl} alt="Nachher" style={{ width: "100%", display: "block" }} />
           </div>
 
-          {/* Speichern + Nochmal */}
           <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
             <button onClick={function() { setNachherUrl(null); setMaterials(null); generieren(); }} style={{
               flex: 1, padding: 12, background: C.card, border: "2px solid " + C.border,
               borderRadius: 50, fontSize: 13, fontWeight: 600, cursor: "pointer", color: C.text,
               fontFamily: "'DM Sans', sans-serif",
-            }}>🔄 Nochmal</button>
+            }}>Nochmal</button>
             <a href={nachherUrl} download="makeover.jpg" target="_blank" rel="noreferrer" style={{
               flex: 1, padding: 12, background: C.accent, borderRadius: 50,
               fontSize: 13, fontWeight: 600, color: "white",
               textDecoration: "none", textAlign: "center",
               display: "flex", alignItems: "center", justifyContent: "center",
               fontFamily: "'DM Sans', sans-serif",
-            }}>💾 Bild speichern</a>
+            }}>Bild speichern</a>
           </div>
 
-          {/* Materialien */}
           {materials && (
             <div style={{ background: "#FFF0E8", border: "1px solid #F0C4A0", borderRadius: 14, padding: "16px", marginBottom: 12 }}>
-              <p style={{ fontWeight: 700, fontSize: 14, color: C.accent, marginBottom: 10 }}>
-                🔨 Was du im Bild siehst – Materialien & Kosten:
-              </p>
+              <p style={{ fontWeight: 700, fontSize: 14, color: C.accent, marginBottom: 10 }}>Was du im Bild siehst:</p>
               <p style={{ fontSize: 13, color: C.text, lineHeight: 1.8, whiteSpace: "pre-wrap", marginBottom: 14 }}>{materials}</p>
-
-              {/* In Planer speichern Button */}
               <button onClick={handleSaveToPlaner} style={{
                 width: "100%", padding: "12px", borderRadius: 50,
                 background: saved ? "#4ade80" : "linear-gradient(135deg, #1a1a2e, #2d2d4e)",
                 color: "white", border: "none", cursor: saved ? "default" : "pointer",
                 fontSize: 13, fontWeight: 700, fontFamily: "'DM Sans', sans-serif",
-                transition: "all 0.3s",
               }}>
-                {saved ? "✅ Im Planer gespeichert!" : "📋 Makeover + Materialien in Planer speichern"}
+                {saved ? "Im Planer gespeichert!" : "Makeover + Materialien in Planer speichern"}
               </button>
             </div>
           )}
@@ -2233,149 +2210,6 @@ function MakeoverTab({ onSaveToPlaner }) {
   );
 }
 
-  function handleDatei(e) {
-    var f = e.target.files[0];
-    if (!f) return;
-    setFile(f); setVorherUrl(URL.createObjectURL(f));
-    setNachherUrl(null); setMaterials(null); setError(null);
-  }
-
-  function generieren() {
-    if (!file) return;
-    setLoading(true); setNachherUrl(null); setMaterials(null); setError(null); setProgress(0);
-    var timer = setInterval(function() {
-      setProgress(function(p) { return p < 85 ? p + 2 : p; });
-    }, 600);
-    compressImageFile(file).then(function(base64) {
-      return fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageBase64: base64, style: stil }),
-      });
-    }).then(function(res) { return res.json(); })
-    .then(function(data) {
-      clearInterval(timer);
-      if (data.error) { setError(data.error); setLoading(false); return; }
-      setProgress(100);
-      setNachherUrl(data.imageUrl);
-      setMaterials(data.materials || null);
-      setLoading(false);
-    }).catch(function(err) {
-      clearInterval(timer); setError(err.message); setLoading(false);
-    });
-  }
-
-  return (
-    <div style={{ overflowY: "auto", height: "100%", padding: "16px 16px 40px" }}>
-      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, marginBottom: 4 }}>✨ KI Makeover</h2>
-      <p style={{ fontSize: 13, color: C.muted, marginBottom: 16 }}>Foto hochladen → Stil wählen → KI generiert dein Nachher-Bild</p>
-
-      <p style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>Stil wählen</p>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 20 }}>
-        {STILE_MAKEOVER.map(function(s) {
-          return (
-            <button key={s.id} onClick={function() { setStil(s.id); }} style={{
-              padding: "9px 10px", borderRadius: 10, cursor: "pointer", textAlign: "left",
-              border: "2px solid " + (stil === s.id ? C.accent : C.border),
-              background: stil === s.id ? "#FFF0E8" : C.card,
-              color: stil === s.id ? C.accent : C.text,
-              fontSize: 12, fontWeight: stil === s.id ? 600 : 400,
-              fontFamily: "'DM Sans', sans-serif",
-            }}>
-              {s.emoji} {s.label}
-            </button>
-          );
-        })}
-      </div>
-
-      <div onClick={function() { fileRef.current.click(); }} style={{
-        border: "2px dashed " + (vorherUrl ? C.accent : C.border),
-        borderRadius: 16, overflow: "hidden",
-        padding: vorherUrl ? 0 : "40px 20px",
-        textAlign: "center", cursor: "pointer",
-        background: vorherUrl ? "transparent" : C.card, marginBottom: 14,
-      }}>
-        {vorherUrl
-          ? <img src={vorherUrl} alt="Vorher" style={{ width: "100%", display: "block", maxHeight: 300, objectFit: "cover" }} />
-          : <>
-              <div style={{ fontSize: 44, marginBottom: 10 }}>📷</div>
-              <p style={{ fontWeight: 600, fontSize: 16, color: C.text, marginBottom: 4 }}>Foto hochladen</p>
-              <p style={{ fontSize: 13, color: C.muted }}>Tippe um ein Foto zu wählen</p>
-            </>
-        }
-      </div>
-      <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleDatei} />
-
-      {vorherUrl && (
-        <button onClick={generieren} disabled={loading} style={{
-          width: "100%", padding: 16, marginBottom: 14,
-          background: loading ? "#DDD" : "linear-gradient(135deg, #C4622D, #A0522D)",
-          color: loading ? "#999" : "white", border: "none", borderRadius: 50,
-          fontSize: 15, fontWeight: 700, cursor: loading ? "default" : "pointer",
-          fontFamily: "'DM Sans', sans-serif",
-          boxShadow: loading ? "none" : "0 4px 16px rgba(196,98,45,0.3)",
-        }}>
-          {loading ? "⏳ KI generiert Bild (15-30 Sek.)…" : "✨ Makeover generieren"}
-        </button>
-      )}
-
-      {loading && (
-        <div style={{ marginBottom: 16 }}>
-          <div style={{ height: 5, background: C.border, borderRadius: 3, overflow: "hidden", marginBottom: 6 }}>
-            <div style={{ height: "100%", width: progress + "%", background: C.accent, borderRadius: 3, transition: "width 0.6s" }} />
-          </div>
-          <p style={{ fontSize: 12, color: C.muted, textAlign: "center" }}>
-            {progress < 40 ? "Bild wird analysiert…" : progress < 80 ? "KI generiert Makeover…" : "Fast fertig…"}
-          </p>
-        </div>
-      )}
-
-      {error && (
-        <div style={{ background: "#FFF5F5", border: "1px solid #F5D0D0", borderRadius: 12, padding: "12px 14px", marginBottom: 16 }}>
-          <p style={{ fontSize: 13, color: "#B91C1C", fontWeight: 600 }}>Fehler</p>
-          <p style={{ fontSize: 12, color: "#7F1D1D", marginTop: 4 }}>{error}</p>
-        </div>
-      )}
-
-      {nachherUrl && (
-        <div>
-          <div style={{ display: "flex", gap: 8, marginBottom: 10, alignItems: "center" }}>
-            <div style={{ flex: 1, height: 2, background: C.border }} />
-            <span style={{ fontSize: 12, color: C.accent, fontWeight: 700 }}>✨ NACHHER</span>
-            <div style={{ flex: 1, height: 2, background: C.border }} />
-          </div>
-          <div style={{ borderRadius: 14, overflow: "hidden", marginBottom: 14, boxShadow: "0 6px 24px rgba(0,0,0,0.1)" }}>
-            <img src={nachherUrl} alt="Nachher" style={{ width: "100%", display: "block" }} />
-          </div>
-
-          {materials && (
-            <div style={{ background: "#FFF0E8", border: "1px solid #F0C4A0", borderRadius: 14, padding: "16px", marginBottom: 14 }}>
-              <p style={{ fontWeight: 700, fontSize: 14, color: C.accent, marginBottom: 10 }}>
-                🔨 Was du im Bild siehst:
-              </p>
-              <p style={{ fontSize: 13, color: C.text, lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{materials}</p>
-            </div>
-          )}
-
-          <div style={{ display: "flex", gap: 10 }}>
-            <button onClick={function() { setNachherUrl(null); setMaterials(null); generieren(); }} style={{
-              flex: 1, padding: 13, background: C.card, border: "2px solid " + C.border,
-              borderRadius: 50, fontSize: 13, fontWeight: 600, cursor: "pointer", color: C.text,
-              fontFamily: "'DM Sans', sans-serif",
-            }}>🔄 Nochmal</button>
-            <a href={nachherUrl} download="makeover.jpg" target="_blank" rel="noreferrer" style={{
-              flex: 1, padding: 13, background: C.accent, borderRadius: 50,
-              fontSize: 13, fontWeight: 600, color: "white",
-              textDecoration: "none", textAlign: "center",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontFamily: "'DM Sans', sans-serif",
-            }}>💾 Speichern</a>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 const TABS = [
   { id: "makeover", label: "Makeover", icon: "✨" },
