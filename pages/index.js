@@ -2011,6 +2011,80 @@ function compressImageFile(file) {
   });
 }
 
+// ─── Markdown + Affiliate Renderer ───────────────────────────────────────────
+function renderMaterialien(text) {
+  if (!text) return null;
+  var lines = text.split("\n");
+  return lines.map(function(line, i) {
+    if (!line.trim()) return React.createElement("div", { key: i, style: { height: 8 } });
+
+    // Render bold **text**
+    var parts = line.split(/\*\*(.*?)\*\*/g);
+    var rendered = parts.map(function(part, j) {
+      if (j % 2 === 1) return React.createElement("strong", { key: j, style: { color: C.text, fontWeight: 700 } }, part);
+      return part;
+    });
+
+    // Check if line has a product keyword for affiliate link
+    var lowerLine = line.toLowerCase();
+    var affiliateLink = null;
+    var linkLabel = null;
+
+    if (lowerLine.match(/fliesen|feinsteinzeug|anthrazit.*fliesen|fliesen.*anthrazit/)) {
+      affiliateLink = amazonLink("Feinsteinzeug Fliesen Anthrazit 80x80"); linkLabel = "Amazon";
+    } else if (lowerLine.match(/walk.in.*dusche|dusche.*glas|glaswand|esg.glas|glasscheibe/)) {
+      affiliateLink = amazonLink("Walk-In Dusche Glaswand 8mm ESG"); linkLabel = "Amazon";
+    } else if (lowerLine.match(/waschtisch|waschbecken|unterschrank.*holz|teak.*holz.*wand/)) {
+      affiliateLink = amazonLink("Schwebender Waschtisch Holz Wandmontage"); linkLabel = "Amazon";
+    } else if (lowerLine.match(/led.*spiegel|spiegel.*led|emke|aquamarin.*spiegel/)) {
+      affiliateLink = amazonLink("LED Spiegel Bad beleuchtet IP44 Emke"); linkLabel = "Amazon";
+    } else if (lowerLine.match(/armatur|mattschwarz.*armatur|armatur.*mattschwarz|wasserhahn.*schwarz/)) {
+      affiliateLink = amazonLink("Waschtisch Armatur mattschwarz"); linkLabel = "Amazon";
+    } else if (lowerLine.match(/mikrozement|mikro.zement/)) {
+      affiliateLink = amazonLink("Mikrozement Set Boden Wand Versiegelung"); linkLabel = "Amazon";
+    } else if (lowerLine.match(/vinyl|spc.*boden|luxury.*vinyl|klick.*boden/)) {
+      affiliateLink = amazonLink("SPC Vinyl Boden wasserfest Rigid Core 5mm"); linkLabel = "Amazon";
+    } else if (lowerLine.match(/laminat/)) {
+      affiliateLink = amazonLink("Laminat Eiche 8mm Klick Trittschall"); linkLabel = "Amazon";
+    } else if (lowerLine.match(/parkett/)) {
+      affiliateLink = amazonLink("Fertigparkett Eiche geoelt Click"); linkLabel = "Amazon";
+    } else if (lowerLine.match(/silikon|silikonfuge/)) {
+      affiliateLink = amazonLink("Soudal Bad Silikon Schimmelschutz"); linkLabel = "Amazon";
+    } else if (lowerLine.match(/led.*strip|led.*streifen|led.*leiste/)) {
+      affiliateLink = amazonLink("LED Strip 2700K warmweiss 5m dimmbar"); linkLabel = "Amazon";
+    } else if (lowerLine.match(/einbaustrahler|einbau.*strahler/)) {
+      affiliateLink = amazonLink("LED Einbaustrahler GU10 IP44 Set"); linkLabel = "Amazon";
+    } else if (lowerLine.match(/pendelleuchte|haengelampe|pendellampe/)) {
+      affiliateLink = amazonLink("Pendelleuchte Schwarz Kueche Esstisch"); linkLabel = "Amazon";
+    } else if (lowerLine.match(/griffe|tuergriff|schrankgriff/)) {
+      affiliateLink = amazonLink("Kuechen Griffe mattschwarz 128mm Set 20"); linkLabel = "Amazon";
+    } else if (lowerLine.match(/tapete|vlies.*tapete/)) {
+      affiliateLink = amazonLink("Vliestapete Strukturtapete modern"); linkLabel = "Amazon";
+    } else if (lowerLine.match(/wandfarbe|wandlack|kreidefarbe/)) {
+      affiliateLink = amazonLink("Wandfarbe Erdtöne seidenmatt Terrakotta"); linkLabel = "Amazon";
+    } else if (lowerLine.match(/paneele|wandpaneel|holzpaneel|fluted/)) {
+      affiliateLink = amazonLink("Wandpaneele MDF Holzoptik selbstklebend"); linkLabel = "Amazon";
+    } else if (lowerLine.match(/dichtschl|abdicht|kerdi/)) {
+      affiliateLink = amazonLink("Dichtschlaemme 2K Dusche Abdichtung Bad"); linkLabel = "Amazon";
+    } else if (lowerLine.match(/osmo|hartwachs.*oel|holzoel/)) {
+      affiliateLink = amazonLink("Osmo Hartwachsoel 3032 750ml"); linkLabel = "Amazon";
+    } else if (lowerLine.match(/wpc.*diele|holzdiele|terrassen.*diele/)) {
+      affiliateLink = amazonLink("WPC Dielen Terrasse Holzoptik Clip"); linkLabel = "Amazon";
+    }
+
+    return React.createElement("div", { key: i, style: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 6 } },
+      React.createElement("p", { style: { fontSize: 13, color: "#555", lineHeight: 1.7, flex: 1 } }, rendered),
+      affiliateLink ? React.createElement("a", {
+        href: affiliateLink,
+        target: "_blank",
+        rel: "noopener noreferrer",
+        style: { flexShrink: 0, background: "#F0F5EC", color: "#3a7a56", borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap" },
+      }, "Amazon →") : null
+    );
+  });
+}
+
+
 function MakeoverTab({ onSaveToPlaner, savedMakeovers }) {
   var fileRef = useRef();
   var s1 = useState(null); var file = s1[0]; var setFile = s1[1];
@@ -2178,7 +2252,8 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers }) {
             {viewingHistory.materials && (
               <div style={{ background: "#FFF0E8", border: "1px solid #F0C4A0", borderRadius: 12, padding: "14px" }}>
                 <p style={{ fontWeight: 700, fontSize: 13, color: C.accent, marginBottom: 8 }}>Verwendete Materialien:</p>
-                <p style={{ fontSize: 12, color: C.text, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{viewingHistory.materials}</p>
+                <div>{renderMaterialien(viewingHistory.materials)}</div>
+                <p style={{ fontSize: 10, color: C.muted, marginTop: 6 }}>* Affiliate-Links - fuer dich keine Mehrkosten</p>
               </div>
             )}
           </div>
@@ -2301,15 +2376,28 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers }) {
                 {materials && (
                   <div style={{ background: "#FFF0E8", border: "1px solid #F0C4A0", borderRadius: 12, padding: "14px" }}>
                     <p style={{ fontWeight: 700, fontSize: 13, color: C.accent, marginBottom: 8 }}>Verwendete Materialien:</p>
-                    <p style={{ fontSize: 13, color: C.text, lineHeight: 1.8, whiteSpace: "pre-wrap", marginBottom: 12 }}>{materials}</p>
-                    <button onClick={handleSaveToPlaner} style={{
-                      width: "100%", padding: "11px", borderRadius: 50,
-                      background: saved ? "#4ade80" : "linear-gradient(135deg, #1a1a2e, #2d2d4e)",
-                      color: "white", border: "none", cursor: saved ? "default" : "pointer",
-                      fontSize: 13, fontWeight: 700, fontFamily: "'DM Sans', sans-serif",
-                    }}>
-                      {saved ? "Gespeichert!" : "Makeover + Materialien speichern"}
-                    </button>
+                    <div style={{ marginBottom: 12 }}>{renderMaterialien(materials)}</div>
+                    <p style={{ fontSize: 10, color: C.muted, marginBottom: 10 }}>* Affiliate-Links - fuer dich keine Mehrkosten</p>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button onClick={handleSaveToPlaner} style={{
+                        flex: 1, padding: "11px", borderRadius: 50,
+                        background: saved ? "#4ade80" : "linear-gradient(135deg, #1a1a2e, #2d2d4e)",
+                        color: "white", border: "none", cursor: saved ? "default" : "pointer",
+                        fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif",
+                      }}>
+                        {saved ? "Gespeichert!" : "Speichern"}
+                      </button>
+                      <button onClick={function() {
+                        handleSaveToPlaner();
+                      }} style={{
+                        flex: 2, padding: "11px", borderRadius: 50,
+                        background: saved ? "#4ade80" : C.accent,
+                        color: "white", border: "none", cursor: saved ? "default" : "pointer",
+                        fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif",
+                      }}>
+                        {saved ? "Im Planer gespeichert!" : "Als Projekt in Planer"}
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
