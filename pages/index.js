@@ -1975,17 +1975,207 @@ function HandwerkerTab() {
   );
 }
 
+const STILE_MAKEOVER = [
+  { id: "bad-modern",    emoji: "🚿", label: "Bad: Modern & Spa" },
+  { id: "bad-warm",      emoji: "🚿", label: "Bad: Hell & Warm" },
+  { id: "bad-mikro",     emoji: "🚿", label: "Bad: Mikrozement" },
+  { id: "kueche-navy",   emoji: "🍳", label: "Küche: Navy & Holz" },
+  { id: "kueche-grau",   emoji: "🍳", label: "Küche: Seidengrau" },
+  { id: "kueche-gruen",  emoji: "🍳", label: "Küche: Salbeigrün" },
+  { id: "wohn-gruen",    emoji: "🛋️", label: "Wohnzimmer: Grün" },
+  { id: "wohn-terra",    emoji: "🛋️", label: "Wohnzimmer: Terrakotta" },
+  { id: "schlaf-terra",  emoji: "🛏️", label: "Schlafzimmer: Terrakotta" },
+  { id: "schlaf-dunkel", emoji: "🛏️", label: "Schlafzimmer: Dunkel" },
+  { id: "terrasse-wpc",  emoji: "🌿", label: "Terrasse: WPC & Lounge" },
+];
+
+function compressImageFile(file) {
+  return new Promise(function(resolve) {
+    var img = new Image();
+    img.onload = function() {
+      var canvas = document.createElement("canvas");
+      var max = 1024;
+      var w = img.width, h = img.height;
+      if (w > h && w > max) { h = Math.round(h * max / w); w = max; }
+      else if (h > max) { w = Math.round(w * max / h); h = max; }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+      canvas.toBlob(function(blob) {
+        var reader = new FileReader();
+        reader.onload = function() { resolve(reader.result.split(",")[1]); };
+        reader.readAsDataURL(blob);
+      }, "image/jpeg", 0.85);
+    };
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+function MakeoverTab() {
+  var fileRef = useRef();
+  var s1 = useState(null); var file = s1[0]; var setFile = s1[1];
+  var s2 = useState(null); var vorherUrl = s2[0]; var setVorherUrl = s2[1];
+  var s3 = useState(null); var nachherUrl = s3[0]; var setNachherUrl = s3[1];
+  var s4 = useState(null); var materials = s4[0]; var setMaterials = s4[1];
+  var s5 = useState("bad-modern"); var stil = s5[0]; var setStil = s5[1];
+  var s6 = useState(false); var loading = s6[0]; var setLoading = s6[1];
+  var s7 = useState(null); var error = s7[0]; var setError = s7[1];
+  var s8 = useState(0); var progress = s8[0]; var setProgress = s8[1];
+
+  function handleDatei(e) {
+    var f = e.target.files[0];
+    if (!f) return;
+    setFile(f); setVorherUrl(URL.createObjectURL(f));
+    setNachherUrl(null); setMaterials(null); setError(null);
+  }
+
+  function generieren() {
+    if (!file) return;
+    setLoading(true); setNachherUrl(null); setMaterials(null); setError(null); setProgress(0);
+    var timer = setInterval(function() {
+      setProgress(function(p) { return p < 85 ? p + 2 : p; });
+    }, 600);
+    compressImageFile(file).then(function(base64) {
+      return fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageBase64: base64, style: stil }),
+      });
+    }).then(function(res) { return res.json(); })
+    .then(function(data) {
+      clearInterval(timer);
+      if (data.error) { setError(data.error); setLoading(false); return; }
+      setProgress(100);
+      setNachherUrl(data.imageUrl);
+      setMaterials(data.materials || null);
+      setLoading(false);
+    }).catch(function(err) {
+      clearInterval(timer); setError(err.message); setLoading(false);
+    });
+  }
+
+  return (
+    <div style={{ overflowY: "auto", height: "100%", padding: "16px 16px 40px" }}>
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, marginBottom: 4 }}>✨ KI Makeover</h2>
+      <p style={{ fontSize: 13, color: C.muted, marginBottom: 16 }}>Foto hochladen → Stil wählen → KI generiert dein Nachher-Bild</p>
+
+      <p style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>Stil wählen</p>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 20 }}>
+        {STILE_MAKEOVER.map(function(s) {
+          return (
+            <button key={s.id} onClick={function() { setStil(s.id); }} style={{
+              padding: "9px 10px", borderRadius: 10, cursor: "pointer", textAlign: "left",
+              border: "2px solid " + (stil === s.id ? C.accent : C.border),
+              background: stil === s.id ? "#FFF0E8" : C.card,
+              color: stil === s.id ? C.accent : C.text,
+              fontSize: 12, fontWeight: stil === s.id ? 600 : 400,
+              fontFamily: "'DM Sans', sans-serif",
+            }}>
+              {s.emoji} {s.label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div onClick={function() { fileRef.current.click(); }} style={{
+        border: "2px dashed " + (vorherUrl ? C.accent : C.border),
+        borderRadius: 16, overflow: "hidden",
+        padding: vorherUrl ? 0 : "40px 20px",
+        textAlign: "center", cursor: "pointer",
+        background: vorherUrl ? "transparent" : C.card, marginBottom: 14,
+      }}>
+        {vorherUrl
+          ? <img src={vorherUrl} alt="Vorher" style={{ width: "100%", display: "block", maxHeight: 300, objectFit: "cover" }} />
+          : <>
+              <div style={{ fontSize: 44, marginBottom: 10 }}>📷</div>
+              <p style={{ fontWeight: 600, fontSize: 16, color: C.text, marginBottom: 4 }}>Foto hochladen</p>
+              <p style={{ fontSize: 13, color: C.muted }}>Tippe um ein Foto zu wählen</p>
+            </>
+        }
+      </div>
+      <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleDatei} />
+
+      {vorherUrl && (
+        <button onClick={generieren} disabled={loading} style={{
+          width: "100%", padding: 16, marginBottom: 14,
+          background: loading ? "#DDD" : "linear-gradient(135deg, #C4622D, #A0522D)",
+          color: loading ? "#999" : "white", border: "none", borderRadius: 50,
+          fontSize: 15, fontWeight: 700, cursor: loading ? "default" : "pointer",
+          fontFamily: "'DM Sans', sans-serif",
+          boxShadow: loading ? "none" : "0 4px 16px rgba(196,98,45,0.3)",
+        }}>
+          {loading ? "⏳ KI generiert Bild (15-30 Sek.)…" : "✨ Makeover generieren"}
+        </button>
+      )}
+
+      {loading && (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ height: 5, background: C.border, borderRadius: 3, overflow: "hidden", marginBottom: 6 }}>
+            <div style={{ height: "100%", width: progress + "%", background: C.accent, borderRadius: 3, transition: "width 0.6s" }} />
+          </div>
+          <p style={{ fontSize: 12, color: C.muted, textAlign: "center" }}>
+            {progress < 40 ? "Bild wird analysiert…" : progress < 80 ? "KI generiert Makeover…" : "Fast fertig…"}
+          </p>
+        </div>
+      )}
+
+      {error && (
+        <div style={{ background: "#FFF5F5", border: "1px solid #F5D0D0", borderRadius: 12, padding: "12px 14px", marginBottom: 16 }}>
+          <p style={{ fontSize: 13, color: "#B91C1C", fontWeight: 600 }}>Fehler</p>
+          <p style={{ fontSize: 12, color: "#7F1D1D", marginTop: 4 }}>{error}</p>
+        </div>
+      )}
+
+      {nachherUrl && (
+        <div>
+          <div style={{ display: "flex", gap: 8, marginBottom: 10, alignItems: "center" }}>
+            <div style={{ flex: 1, height: 2, background: C.border }} />
+            <span style={{ fontSize: 12, color: C.accent, fontWeight: 700 }}>✨ NACHHER</span>
+            <div style={{ flex: 1, height: 2, background: C.border }} />
+          </div>
+          <div style={{ borderRadius: 14, overflow: "hidden", marginBottom: 14, boxShadow: "0 6px 24px rgba(0,0,0,0.1)" }}>
+            <img src={nachherUrl} alt="Nachher" style={{ width: "100%", display: "block" }} />
+          </div>
+
+          {materials && (
+            <div style={{ background: "#FFF0E8", border: "1px solid #F0C4A0", borderRadius: 14, padding: "16px", marginBottom: 14 }}>
+              <p style={{ fontWeight: 700, fontSize: 14, color: C.accent, marginBottom: 10 }}>
+                🔨 Was du im Bild siehst:
+              </p>
+              <p style={{ fontSize: 13, color: C.text, lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{materials}</p>
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: 10 }}>
+            <button onClick={function() { setNachherUrl(null); setMaterials(null); generieren(); }} style={{
+              flex: 1, padding: 13, background: C.card, border: "2px solid " + C.border,
+              borderRadius: 50, fontSize: 13, fontWeight: 600, cursor: "pointer", color: C.text,
+              fontFamily: "'DM Sans', sans-serif",
+            }}>🔄 Nochmal</button>
+            <a href={nachherUrl} download="makeover.jpg" target="_blank" rel="noreferrer" style={{
+              flex: 1, padding: 13, background: C.accent, borderRadius: 50,
+              fontSize: 13, fontWeight: 600, color: "white",
+              textDecoration: "none", textAlign: "center",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontFamily: "'DM Sans', sans-serif",
+            }}>💾 Speichern</a>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 const TABS = [
-  { id: "chat", label: "Makeover", icon: "💬" },
-  { id: "ideen", label: "Ideen", icon: "💡" },
-  { id: "galerie", label: "Inspo", icon: "🖼️" },
-  { id: "rechner", label: "Rechner", icon: "🧮" },
-  { id: "planer", label: "Planer", icon: "📋" },
-  { id: "handwerker", label: "Profis", icon: "🔨" },
+  { id: "makeover", label: "Makeover", icon: "✨" },
+  { id: "chat",     label: "Chat",     icon: "💬" },
+  { id: "ideen",    label: "Ideen",    icon: "💡" },
+  { id: "rechner",  label: "Rechner",  icon: "🧮" },
+  { id: "planer",   label: "Planer",   icon: "📋" },
+  { id: "profis",   label: "Profis",   icon: "🔨" },
 ];
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState("chat");
+  const [activeTab, setActiveTab] = useState("makeover");
   const [savedMakeovers, setSavedMakeovers] = useState([]);
   const [chatMessages, setChatMessages] = useState([
     {
@@ -2012,22 +2202,10 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Vercel Banner */}
-        <a href="/makeover" target="_blank" rel="noopener noreferrer" style={{
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          background: "linear-gradient(135deg, #C4622D, #A0522D)",
-          padding: "10px 18px", textDecoration: "none", flexShrink: 0,
-        }}>
-          <div>
-            <p style={{ color: "white", fontWeight: 700, fontSize: 13 }}>✨ Echte KI-Bilder generieren</p>
-            <p style={{ color: "rgba(255,255,255,0.75)", fontSize: 11 }}>Foto hochladen → KI erstellt dein Makeover-Bild</p>
-          </div>
-          <span style={{ background: "white", color: C.accent, borderRadius: 20, padding: "6px 14px", fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
-            Öffnen →
-          </span>
-        </a>
+        {/* Vercel Banner removed - now full app */}
 
         <div style={{ flex: 1, overflow: "hidden", position: "relative" }}>
+          {activeTab === "makeover" && <MakeoverTab />}
           <div style={{ display: activeTab === "chat" ? "flex" : "none", flexDirection: "column", height: "100%" }}>
             <ChatTab onSave={(m) => setSavedMakeovers(prev => [...prev, m])} messages={chatMessages} setMessages={setChatMessages} />
           </div>
@@ -2035,10 +2213,10 @@ export default function Home() {
           {activeTab === "galerie" && <InspirationTab />}
           {activeTab === "rechner" && <RechnerTab />}
           {activeTab === "planer" && <PlanerTab savedMakeovers={savedMakeovers} />}
-          {activeTab === "handwerker" && <HandwerkerTab />}
+          {activeTab === "profis" && <HandwerkerTab />}
         </div>
 
-        <div style={{ background: C.card, borderTop: "1px solid " + C.border, display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr", flexShrink: 0 }}>
+        <div style={{ background: C.card, borderTop: "1px solid " + C.border, display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr 1fr", flexShrink: 0 }}>
           {TABS.map((tab) => (
             <button
               key={tab.id}
