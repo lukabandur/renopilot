@@ -1,21 +1,41 @@
 export const config = {
-  api: { bodyParser: { sizeLimit: "1mb" } },
+  api: { bodyParser: { sizeLimit: "10mb" } },
 };
 
+const SYS = `Du bist RenoPilot, ein freundlicher DIY-Renovierungsberater mit Wissen aus 20 Handwerker-YouTube-Videos. Antworte immer auf Deutsch.
+
+WENN EIN FOTO hochgeladen wird, analysiere IMMER in dieser Struktur:
+🏠 **Raum & Materialien**: Was siehst du genau? Welche Materialien erkennst du (Fliesen, Putz, Laminat, Armaturen, Farbe, Zustand)?
+🔨 **Sofortmaßnahmen**: Was kann man selbst schnell verbessern ohne großen Aufwand?
+✨ **Upgrade-Ideen**: 2–3 konkrete Renovierungsideen was sich hier gut machen würde
+🛒 **Material-Empfehlungen**: Konkrete Produktnamen. Für Amazon-Produkte nutze dieses Format: [Produktname](https://www.amazon.de/s?k=SUCHBEGRIFF&tag=renopilot-21)
+
+BEI TEXTNACHRICHTEN: Kurz, konkret, max. 5 Sätze, motivierend. Nutze **Fettschrift** für wichtige Begriffe.
+
+FACHWISSEN:
+- STREICHEN: Lammfellrolle 12–18mm, Dispersionsfarbe trocken abziehen, Latexfarbe NASS abziehen
+- SPACHTELN: Q1 (Fugen), Q2 (Übergang), Q3 (Abporen). Pulverspachtel Q1, Fertigspachtel Q2/Q3
+- FLIESEN: Doppelklebung, Zahnkelle 8mm, Nivelliersystem, 1/3-Verband
+- BAD: Alte Fliesen lassen (Klopftest), Silikon raus, SMP-Klebstoff ohne Dispersionsgrundierung
+- LAMINAT: 10mm Dehnungsfuge, 48h akklimatisieren, Trittschalldämmung
+- WANDPANEELE: Fluted Panels Akzentwand, erstes Panel mit Wasserwaage, S-Muster Kleber
+- LED: 24V, WAGO-Klemmen, Trailing-Edge-Dimmer, 20% Trafo-Reserve`;
+
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).end();
 
-  var messages = req.body.messages;
-  if (!messages || !messages.length) {
-    return res.status(400).json({ error: "Keine Nachrichten" });
+  const { message, imgBase64, mimeType } = req.body;
+
+  const content = [];
+  if (imgBase64) {
+    const base64Data = imgBase64.includes(",") ? imgBase64.split(",")[1] : imgBase64;
+    const mediaType = mimeType || (imgBase64.includes("data:image/png") ? "image/png" : "image/jpeg");
+    content.push({ type: "image", source: { type: "base64", media_type: mediaType, data: base64Data } });
   }
+  content.push({ type: "text", text: message || "Analysiere dieses Bild." });
 
   try {
-    var response = await fetch("https://api.anthropic.com/v1/messages", {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -23,18 +43,17 @@ export default async function handler(req, res) {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-opus-4-6",
-        max_tokens: 1024,
-        system: "Du bist RenoPilot, ein erfahrener DIY-Renovierungsexperte für Deutschland. Du kennst OBI, Bauhaus, Hornbach, IKEA.\n\nFachwissen:\n- Renovierungsreihenfolge: Leitungen → Trockenbau → Malen → Boden → Sanitär → Silikon\n- Trockenbau: GKFI-Platten (grün) im Bad, Schrauben 0,5mm versenkt, Glasflies-Fugenband\n- LED: Aufputz/Unterputz/Fliesen einlegen, 2700K Wohnraum, 4000K Küche, Dimmer immer!\n- Fliesen: Flexkleber C2, Buttering-Floating, Kreuzfugen 2mm Bad, Randfuge IMMER Silikon\n- Wände streichen: Kreppband fingerspitzenartig, Teleskopstange, von oben nach unten\n- Laminat: 10mm Dehnungsfuge, Trittschall, längs zur Fensterseite = größer wirkend\n- Luxury-Tricks: 12mm Arbeitsplatte, grifflose Fronten, LED unten, konsequentes Stilkonzept\n- Material-Puffer: immer 15% extra einplanen!\n- Trendfarben 2025: Terrakotta, Salbeigrün, Navy, Dunkelgrün, Erdetöne\n- Produkte: Soudal Bad-Silikon, Osmo Hartwachsöl, Flexkleber C2, SPC Rigid Core Vinyl\n\nWenn Nutzer visuelle Wünsche äußern: Sag dass ihre Wünsche gespeichert wurden und im Makeover-Tab umgesetzt werden.\n\nAntworte auf Deutsch, kurz und motivierend. Für Anfänger erklärt. Mit konkreten Preisen und Produktnamen.",
-        messages: messages,
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        system: SYS,
+        messages: [{ role: "user", content }],
       }),
     });
 
-    var data = await response.json();
-    if (data.error) throw new Error(data.error.message);
-    res.json({ reply: data.content[0].text });
+    const data = await response.json();
+    const reply = data.content?.map(b => b.text || "").join("") || "Fehler beim Antworten.";
+    res.json({ reply });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ reply: "Serverfehler. Bitte erneut versuchen." });
   }
 }
