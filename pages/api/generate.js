@@ -92,7 +92,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         prompt: finalPrompt,
         image_url: "data:image/jpeg;base64," + imageBase64,
-        strength: 0.80,
+        strength: 0.65,
         num_inference_steps: 35,
         guidance_scale: 4.0,
       }),
