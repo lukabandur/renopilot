@@ -153,9 +153,250 @@ const STILE = [
   { id:"schlaf-dunkel",label:"Schlafzimmer Dark",emoji:"✨" },
 ];
 
-const INITIAL_MSG = { role:"assistant", text:"Hallo! 👋 Ich bin RenoPilot – dein persönlicher Renovierungsberater.\n\n📷 Lade ein **Foto deines Raumes** hoch und ich analysiere sofort:\n- Welche Materialien verbaut sind\n- Was du günstig selbst verbessern kannst\n- Konkrete Upgrade-Ideen mit Kosten\n- Welche Produkte du brauchst (mit Links)\n\nOder schreib einfach was du vorhast!" };
+// ─── MAKEOVER TAB (wie Image 3: Stil-Grid + Generieren-Button) ───────────────
+const STIL_GRID = [
+  { id:"bad-modern",   label:"Bad: Modern & Spa",       emoji:"🚿" },
+  { id:"bad-warm",     label:"Bad: Hell & Warm",         emoji:"🛁" },
+  { id:"bad-mikro",    label:"Bad: Mikrozement",         emoji:"⬜" },
+  { id:"kueche-navy",  label:"Küche: Navy & Holz",       emoji:"🍳" },
+  { id:"kueche-grau",  label:"Küche: Seidengrau",        emoji:"🪨" },
+  { id:"kueche-gruen", label:"Küche: Salbeigrün",        emoji:"🌿" },
+  { id:"wohn-dunkel",  label:"Wohnzimmer: Grün",         emoji:"🛋️" },
+  { id:"wohn-terra",   label:"Wohnzimmer: Terrakotta",   emoji:"🏺" },
+  { id:"schlaf-terra", label:"Schlafzimmer: Terrakotta", emoji:"🌙" },
+  { id:"schlaf-dunkel",label:"Schlafzimmer: Dunkel",     emoji:"✨" },
+  { id:"terrasse-wpc", label:"Terrasse: WPC & Lounge",   emoji:"🌿" },
+];
+
+const STIL_PROMPTS = {
+  "bad-modern":    "modern luxury spa bathroom, dark slate tiles, rainfall shower, matte black fixtures, LED mirror, floating vanity, photorealistic interior 8k",
+  "bad-warm":      "bright scandinavian bathroom, white subway tiles, oak wood accents, gold faucets, warm lighting, photorealistic interior",
+  "bad-mikro":     "microcement bathroom seamless concrete walls and floor, floating vanity, indirect warm lighting, minimalist, photorealistic",
+  "kueche-navy":   "modern kitchen dark navy blue cabinets, brass handles, marble countertop, pendant lights, photorealistic interior 8k",
+  "kueche-grau":   "modern kitchen grey satin cabinets, matte black handles, white subway tile backsplash, LED lighting, photorealistic",
+  "kueche-gruen":  "modern kitchen sage green cabinets, wooden open shelves, black handles, plants, bright scandinavian interior photorealistic",
+  "wohn-dunkel":   "living room dark forest green accent wall, oak floor, bouclé sofa, brass lamp, indirect LED, photorealistic interior",
+  "wohn-terra":    "living room terracotta warm tones, rattan furniture, boho, natural light, cozy photorealistic interior",
+  "schlaf-terra":  "bedroom terracotta accent wall, linen bedding, warm oak furniture, morning light, photorealistic interior",
+  "schlaf-dunkel": "moody dark bedroom charcoal walls, velvet headboard, brass sconces, indirect LED, hotel suite photorealistic",
+  "terrasse-wpc":  "modern terrace WPC decking, outdoor lounge furniture, pergola, evening lighting, photorealistic exterior",
+};
 
 function MakeoverTab() {
+  const [stil, setStil] = useState("bad-modern");
+  const [imgPreview, setImgPreview] = useState(null);
+  const [wunsch, setWunsch] = useState("");
+  const [generating, setGenerating] = useState(false);
+  const [genImg, setGenImg] = useState(null);
+  const [saved, setSaved] = useState([]);
+  const [selSaved, setSelSaved] = useState(null);
+  const [showSaved, setShowSaved] = useState(false);
+  const fileRef = useRef(null);
+
+  // Gespeicherte laden
+  useEffect(() => {
+    try {
+      const s = localStorage.getItem("renopilot_makeovers");
+      if (s) setSaved(JSON.parse(s));
+    } catch {}
+  }, []);
+
+  const onFile = (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = ev => { setImgPreview(ev.target.result); setGenImg(null); };
+    r.readAsDataURL(f);
+  };
+
+  const generate = async () => {
+    if (!imgPreview) return;
+    setGenerating(true); setGenImg(null);
+    try {
+      const prompt = STIL_PROMPTS[stil] + (wunsch ? `, ${wunsch}` : "");
+      const res = await fetch("/api/generate", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ stil, prompt, imgBase64: imgPreview }),
+      });
+      const data = await res.json();
+      if (data.imageUrl) {
+        setGenImg(data.imageUrl);
+        // Speichern
+        const entry = { id: Date.now(), stilLabel: STIL_GRID.find(s=>s.id===stil)?.label || stil, imgUrl: data.imageUrl, original: imgPreview, date: new Date().toLocaleDateString("de-DE") };
+        const newSaved = [entry, ...saved].slice(0, 20);
+        setSaved(newSaved);
+        try { localStorage.setItem("renopilot_makeovers", JSON.stringify(newSaved)); } catch {}
+      }
+    } catch {}
+    setGenerating(false);
+  };
+
+  const aktuell = selSaved || null;
+
+  return (
+    <div style={{ display:"flex", height:"100%", overflow:"hidden" }}>
+      {/* Gespeicherte Sidebar */}
+      {showSaved && (
+        <div style={{ width:160, flexShrink:0, borderRight:`1px solid ${G.border}`, background:G.card, overflowY:"auto", padding:"10px 8px" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+            <span style={{ fontSize:12, fontWeight:600, color:G.text }}>Meine Makeovers</span>
+            <button onClick={()=>setShowSaved(false)} style={{ background:"none", border:"none", cursor:"pointer", fontSize:14, color:G.muted }}>✕</button>
+          </div>
+          <button onClick={()=>{ setSelSaved(null); setGenImg(null); setImgPreview(null); }} style={{ width:"100%", padding:"8px", borderRadius:10, background:G.al, border:`1px solid ${G.accent}`, color:G.accent, fontSize:12, fontWeight:600, cursor:"pointer", marginBottom:8 }}>+ Neues Makeover</button>
+          {saved.map(s => (
+            <div key={s.id} onClick={()=>{ setSelSaved(s); setGenImg(s.imgUrl); setImgPreview(s.original); setStil(""); }} style={{ marginBottom:8, cursor:"pointer", borderRadius:10, overflow:"hidden", border:`2px solid ${selSaved?.id===s.id?G.accent:G.border}` }}>
+              <img src={s.imgUrl} alt="" style={{ width:"100%", display:"block" }} />
+              <div style={{ padding:"4px 6px", background:G.bg }}>
+                <div style={{ fontSize:11, fontWeight:600, color:G.text }}>{s.stilLabel}</div>
+                <div style={{ fontSize:10, color:G.muted }}>{s.date}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Haupt-Bereich */}
+      <div style={{ flex:1, overflowY:"auto", padding:"14px 16px" }}>
+        {/* Header */}
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+          <div style={{ fontFamily:"'Playfair Display',serif", fontSize:18, color:G.text, fontWeight:700 }}>KI Makeover</div>
+          <div style={{ display:"flex", gap:8 }}>
+            <button onClick={()=>setShowSaved(!showSaved)} style={{ fontSize:12, padding:"5px 11px", borderRadius:20, background:saved.length>0?G.al:G.bg, border:`1px solid ${saved.length>0?G.accent:G.border}`, color:saved.length>0?G.accent:G.muted, cursor:"pointer" }}>
+              {saved.length > 0 ? `${saved.length} gespeichert` : "Gespeichert"}
+            </button>
+          </div>
+        </div>
+
+        {/* Wunsch-Beschreibung */}
+        <div style={{ marginBottom:14 }}>
+          <input value={wunsch} onChange={e=>setWunsch(e.target.value)} placeholder="Wünsche beschreiben (optional)…" style={{ width:"100%", padding:"10px 13px", borderRadius:10, border:`1px solid ${G.border}`, background:G.bg, color:G.text, fontSize:13 }} />
+        </div>
+
+        {/* Stil-Auswahl */}
+        <div style={{ fontSize:11, color:G.muted, fontWeight:600, textTransform:"uppercase", letterSpacing:.5, marginBottom:10 }}>STIL</div>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:16 }}>
+          {STIL_GRID.map(s => (
+            <button key={s.id} onClick={()=>setStil(s.id)} style={{ padding:"10px 12px", borderRadius:12, border:`2px solid ${stil===s.id?G.accent:G.border}`, background:stil===s.id?G.al:G.card, color:stil===s.id?G.accent:G.sub, fontSize:13, cursor:"pointer", textAlign:"left", fontWeight:stil===s.id?600:400 }}>
+              {s.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Foto hochladen */}
+        <div onClick={()=>fileRef.current?.click()} style={{ borderRadius:14, overflow:"hidden", border:`2px dashed ${imgPreview?G.accent:G.border}`, minHeight:180, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", background:G.bg, marginBottom:14, position:"relative" }}>
+          {imgPreview
+            ? <img src={imgPreview} alt="Dein Raum" style={{ width:"100%", display:"block" }} />
+            : <div style={{ textAlign:"center", padding:24 }}>
+                <div style={{ fontSize:28, marginBottom:8 }}>📷</div>
+                <div style={{ fontSize:14, fontWeight:600, color:G.sub }}>Foto hochladen</div>
+                <div style={{ fontSize:12, color:G.muted, marginTop:4 }}>Tippe um ein Bild auszuwählen</div>
+              </div>}
+        </div>
+        <input type="file" ref={fileRef} accept="image/*" onChange={onFile} style={{ display:"none" }} />
+
+        {/* Generieren Button */}
+        <button onClick={generate} disabled={!imgPreview || generating} style={{ width:"100%", padding:"14px", borderRadius:14, background:imgPreview&&!generating?G.accent:"#ccc", color:"#fff", border:"none", fontSize:16, fontWeight:700, cursor:imgPreview&&!generating?"pointer":"default", marginBottom:16 }}>
+          {generating ? "⏳ KI generiert… (15–30 Sek.)" : "✨ Makeover generieren"}
+        </button>
+
+        {/* Ergebnis */}
+        {generating && (
+          <div style={{ borderRadius:14, background:G.surface, border:`1px solid ${G.border}`, padding:32, textAlign:"center", marginBottom:16 }}>
+            <Spin s={36} />
+            <p style={{ marginTop:12, color:G.muted, fontSize:13 }}>KI verarbeitet dein Bild…</p>
+          </div>
+        )}
+        {genImg && !generating && (
+          <div className="fu" style={{ marginBottom:16 }}>
+            <div style={{ fontSize:12, color:G.muted, marginBottom:8, fontStyle:"italic" }}>✨ KI-Ergebnis – {STIL_GRID.find(s=>s.id===stil)?.label || "Makeover"}</div>
+            <img src={genImg} alt="KI Makeover" style={{ width:"100%", borderRadius:14, display:"block", boxShadow:"0 4px 24px rgba(0,0,0,.1)" }} />
+            <button onClick={generate} style={{ width:"100%", marginTop:10, padding:"10px", borderRadius:10, background:G.bg, border:`1px solid ${G.border}`, color:G.sub, fontSize:13, cursor:"pointer" }}>🔄 Nochmal generieren</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── CHAT TAB (Anthropic API – braucht ANTHROPIC_API_KEY in Vercel) ───────────
+const INITIAL_MSG = { role:"assistant", text:"Hallo! 👋 Ich bin RenoPilot – dein persönlicher Renovierungsberater.\n\n📷 Lade ein **Foto deines Raumes** hoch und ich analysiere:\n- Welche Materialien verbaut sind\n- Was du selbst schnell verbessern kannst\n- Konkrete Upgrade-Ideen\n- Welche Produkte du brauchst (mit Links)\n\nOder schreib einfach deine Frage!" };
+
+function ChatTab() {
+  const [msgs, setMsgs] = useState([INITIAL_MSG]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [imgFile, setImgFile] = useState(null);
+  const [imgPreview, setImgPreview] = useState(null);
+  const endRef = useRef(null);
+  const fileRef = useRef(null);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("renopilot_chat");
+      if (saved) { const p = JSON.parse(saved); if (Array.isArray(p) && p.length > 0) setMsgs(p); }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    try { localStorage.setItem("renopilot_chat", JSON.stringify(msgs.slice(-40))); } catch {}
+    endRef.current?.scrollIntoView({ behavior:"smooth" });
+  }, [msgs]);
+
+  const onFile = (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    setImgFile(f);
+    const r = new FileReader(); r.onload = ev => setImgPreview(ev.target.result); r.readAsDataURL(f);
+  };
+
+  const sendMsg = async (textOverride, previewOverride, mimeOverride) => {
+    const userText = textOverride || input;
+    const preview = previewOverride || imgPreview;
+    if (!userText.trim() && !preview) return;
+    setInput(""); setImgPreview(null); setImgFile(null);
+    setMsgs(m => [...m, { role:"user", text:userText, img:preview }]);
+    setLoading(true);
+    try {
+      const res = await fetch("/api/chat", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ message: userText, imgBase64: preview, mimeType: mimeOverride || "image/jpeg" }),
+      });
+      const data = await res.json();
+      setMsgs(m => [...m, { role:"assistant", text: data.reply || "Fehler – bitte erneut." }]);
+    } catch { setMsgs(m => [...m, { role:"assistant", text:"Verbindungsfehler. Bitte erneut versuchen." }]); }
+    setLoading(false);
+  };
+
+  const onFileAndSend = (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = ev => sendMsg("Analysiere dieses Foto meines Raumes detailliert.", ev.target.result, f.type);
+    r.readAsDataURL(f);
+  };
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column", height:"100%", overflow:"hidden" }}>
+      <div style={{ flex:1, overflowY:"auto", padding:"16px" }}>
+        {msgs.map((m, i) => (
+          <div key={i} className="fu" style={{ marginBottom:14, display:"flex", flexDirection:"column", alignItems:m.role==="user"?"flex-end":"flex-start" }}>
+            {m.role==="assistant" && <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:5 }}><div style={{ width:22, height:22, borderRadius:"50%", background:G.al, border:`1px solid ${G.border}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:11 }}>🏠</div><span style={{ fontSize:11, color:G.muted, fontWeight:500 }}>RenoPilot</span></div>}
+            {m.img && m.img !== "[Foto]" && <img src={m.img} alt="" style={{ maxWidth:220, borderRadius:12, marginBottom:6, boxShadow:"0 2px 12px rgba(0,0,0,.1)" }} />}
+            <div style={{ maxWidth:"88%", padding:"11px 15px", borderRadius:m.role==="user"?"18px 18px 4px 18px":"4px 18px 18px 18px", background:m.role==="user"?G.accent:G.card, color:m.role==="user"?"#fff":G.text, fontSize:14, lineHeight:1.6, boxShadow:"0 1px 6px rgba(0,0,0,.07)", border:m.role==="assistant"?`1px solid ${G.border}`:"none" }}>
+              <RenderText text={m.text} isUser={m.role==="user"} />
+            </div>
+          </div>
+        ))}
+        {loading && <div style={{ display:"flex", gap:8, alignItems:"center", padding:"4px 0 12px" }}><Spin s={18}/><span style={{ fontSize:13, color:G.muted, fontStyle:"italic" }}>RenoPilot analysiert…</span></div>}
+        <div ref={endRef}/>
+      </div>
+      <div style={{ padding:"10px 16px", borderTop:`1px solid ${G.border}`, display:"flex", gap:8, alignItems:"flex-end", background:G.card }}>
+        {imgPreview && <img src={imgPreview} alt="" style={{ width:42, height:42, borderRadius:8, objectFit:"cover", flexShrink:0, border:`2px solid ${G.accent}` }}/>}
+        <button onClick={()=>fileRef.current?.click()} style={{ padding:"9px 11px", background:G.al, border:`1px solid ${G.border}`, borderRadius:10, cursor:"pointer", fontSize:16, flexShrink:0 }}>📷</button>
+        <input type="file" ref={fileRef} accept="image/*" onChange={onFileAndSend} style={{ display:"none" }}/>
+        <textarea value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMsg();}}} placeholder="Frage stellen, z.B. 'Wie streiche ich Wände?'" rows={1} style={{ flex:1, background:G.bg, border:`1px solid ${G.border}`, borderRadius:10, padding:"9px 13px", color:G.text, fontSize:14, resize:"none", minHeight:40, maxHeight:120 }}/>
+        <button onClick={()=>sendMsg()} disabled={loading||!input.trim()} style={{ padding:"9px 16px", background:G.accent, color:"#fff", border:"none", borderRadius:10, cursor:"pointer", fontSize:16, fontWeight:600, opacity:(loading||!input.trim())?.6:1, flexShrink:0 }}>→</button>
+      </div>
+    </div>
+  );
+}
   const [msgs, setMsgs] = useState([INITIAL_MSG]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -657,8 +898,9 @@ function HandwerkerTab() {
 }
 
 const TABS = [
-  {label:"Makeover",icon:"✨"},{label:"Ideen",icon:"💡"},{label:"Anleitungen",icon:"📋"},
-  {label:"Inspo",icon:"🖼️"},{label:"Profis",icon:"🔨"},{label:"Rechner",icon:"🧮"},{label:"Planer",icon:"📅"},
+  {label:"Makeover",icon:"✨"},{label:"Chat",icon:"💬"},{label:"Ideen",icon:"💡"},
+  {label:"Anleitungen",icon:"📋"},{label:"Inspo",icon:"🖼️"},
+  {label:"Profis",icon:"🔨"},{label:"Rechner",icon:"🧮"},{label:"Planer",icon:"📅"},
 ];
 
 export default function Home() {
@@ -668,34 +910,35 @@ export default function Home() {
       <Head>
         <title>RenoPilot – KI Renovierungsberater</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-        <meta name="description" content="KI-Renovierungsplaner: Foto hochladen, Makeover generieren, Anleitungen & Ideen." />
+        <meta name="description" content="KI-Renovierungsplaner: Makeover generieren, Anleitungen & Ideen." />
       </Head>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <div style={{ display:"flex", flexDirection:"column", height:"100vh", background:G.bg, maxWidth:600, margin:"0 auto" }}>
-        <div style={{ padding:"14px 18px 12px", borderBottom:`1px solid ${G.border}`, background:G.card, display:"flex", alignItems:"center", gap:12 }}>
-          <div style={{ width:36, height:36, borderRadius:10, background:G.al, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20 }}>🏠</div>
+        <div style={{ padding:"12px 18px 10px", borderBottom:`1px solid ${G.border}`, background:G.card, display:"flex", alignItems:"center", gap:12 }}>
+          <div style={{ width:34, height:34, borderRadius:10, background:G.al, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18 }}>🏠</div>
           <div>
-            <div style={{ fontFamily:"'Playfair Display',serif", fontSize:20, color:G.text, fontWeight:700, letterSpacing:"-0.3px" }}>RenoPilot</div>
-            <div style={{ fontSize:11, color:G.muted, fontStyle:"italic" }}>KI-Renovierungsberater</div>
+            <div style={{ fontFamily:"'Playfair Display',serif", fontSize:19, color:G.text, fontWeight:700, letterSpacing:"-0.3px" }}>RenoPilot</div>
+            <div style={{ fontSize:10, color:G.muted, fontStyle:"italic" }}>KI-Renovierungsberater</div>
           </div>
-          <div style={{ marginLeft:"auto" }}><Pill>Beta</Pill></div>
+          <div style={{ marginLeft:"auto" }}><Pill size={11}>Beta</Pill></div>
         </div>
         <div style={{ display:"flex", overflowX:"auto", borderBottom:`1px solid ${G.border}`, background:G.card, flexShrink:0 }}>
           {TABS.map((t, i) => (
-            <button key={i} onClick={() => setTab(i)} style={{ flex:"0 0 auto", padding:"10px 12px", background:"transparent", border:"none", borderBottom:`2px solid ${tab===i?G.accent:"transparent"}`, color:tab===i?G.accent:G.muted, cursor:"pointer", fontSize:11, fontWeight:tab===i?600:400, display:"flex", flexDirection:"column", alignItems:"center", gap:2, minWidth:66, transition:"color .15s" }}>
-              <span style={{ fontSize:17 }}>{t.icon}</span>
+            <button key={i} onClick={() => setTab(i)} style={{ flex:"0 0 auto", padding:"9px 11px", background:"transparent", border:"none", borderBottom:`2px solid ${tab===i?G.accent:"transparent"}`, color:tab===i?G.accent:G.muted, cursor:"pointer", fontSize:10, fontWeight:tab===i?600:400, display:"flex", flexDirection:"column", alignItems:"center", gap:2, minWidth:60, transition:"color .15s" }}>
+              <span style={{ fontSize:16 }}>{t.icon}</span>
               <span>{t.label}</span>
             </button>
           ))}
         </div>
         <div style={{ flex:1, overflow:"hidden", display:"flex", flexDirection:"column" }}>
           {tab===0 && <MakeoverTab />}
-          {tab===1 && <IdeenTab />}
-          {tab===2 && <AnleitungenTab extra={ANLEITUNGEN_EXTRA} />}
-          {tab===3 && <InspoTab />}
-          {tab===4 && <HandwerkerTab />}
-          {tab===5 && <RechnerTab />}
-          {tab===6 && <PlanerTab />}
+          {tab===1 && <ChatTab />}
+          {tab===2 && <IdeenTab />}
+          {tab===3 && <AnleitungenTab extra={ANLEITUNGEN_EXTRA} />}
+          {tab===4 && <InspoTab />}
+          {tab===5 && <HandwerkerTab />}
+          {tab===6 && <RechnerTab />}
+          {tab===7 && <PlanerTab />}
         </div>
       </div>
     </>
