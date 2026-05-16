@@ -332,8 +332,19 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: `Kein Bild in Antwort: ${JSON.stringify(data).slice(0, 200)}` });
     }
 
+    // Bild server-seitig als base64 holen (vermeidet CORS im Browser)
+    let resultBase64 = null;
+    try {
+      const imgFetch = await fetch(resultUrl);
+      if (imgFetch.ok) {
+        const imgBuffer = await imgFetch.arrayBuffer();
+        resultBase64 = Buffer.from(imgBuffer).toString("base64");
+      }
+    } catch { /* base64 optional */ }
+
     res.json({
       imageUrl: resultUrl,
+      imageBase64: resultBase64, // für Refinement ohne CORS-Problem
       materials: generateMaterials(style),
       isObjectReplacement: isObjReplace,
       model: isPro ? "flux-pro" : "flux-dev",
