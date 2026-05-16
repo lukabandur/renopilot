@@ -520,8 +520,10 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers, plan, canGenerate, freeUs
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ imageBase64: base64, style: stil, chatContext: instruction, plan: plan||"free" }),
       });
-
-      if (!res.ok) throw new Error(`Server Fehler ${res.status}`);
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`Server Fehler ${res.status}: ${txt.slice(0, 100)}`);
+      }
       const data = await res.json();
 
       if (data.imageUrl) {
@@ -554,6 +556,10 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers, plan, canGenerate, freeUs
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ imageBase64: base64, style: stil, chatContext: wunsch||null, plan: plan||"free" }),
         });
+        if (!res.ok) {
+          const txt = await res.text();
+          throw new Error(`Server Fehler ${res.status}: ${txt.slice(0, 100)}`);
+        }
         const data = await res.json();
         clearInterval(timer);
         if (data.error) { setError(data.error); setLoading(false); return; }
