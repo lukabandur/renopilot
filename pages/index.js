@@ -370,6 +370,52 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers }) {
     setNachherUrl(null); setMaterials(null); setError(null); setSaved(false); setViewingHistory(null);
   }
 
+  const [refinementInput, setRefinementInput] = useState("");
+  const [refining, setRefining] = useState(false);
+  const [refinementHistory, setRefinementHistory] = useState([]); // [{url, instruction}]
+
+  async function refineMakeover() {
+    if (!refinementInput.trim() || !nachherUrl) return;
+    const instruction = refinementInput;
+    setRefinementInput("");
+    setRefining(true);
+
+    // Add current image to history
+    setRefinementHistory(prev => [...prev, { url: nachherUrl, instruction }]);
+
+    // Fetch the current generated image and convert to base64
+    try {
+      const imgRes = await fetch(nachherUrl);
+      const blob = await imgRes.blob();
+      const base64 = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(",")[1]);
+        reader.readAsDataURL(blob);
+      });
+
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          imageBase64: base64,
+          style: stil,
+          chatContext: instruction,
+        }),
+      });
+      const data = await res.json();
+      if (data.imageUrl) {
+        setNachherUrl(data.imageUrl);
+        if (data.materials) setMaterials(data.materials);
+        setSaved(false);
+      } else {
+        setError(data.error || "Fehler beim Verfeinern.");
+      }
+    } catch (err) {
+      setError(err.message);
+    }
+    setRefining(false);
+  }
+
   function generieren() {
     if (!file) return;
     setViewingHistory(null); setLoading(true); setNachherUrl(null); setMaterials(null);
@@ -512,13 +558,61 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers }) {
 
             {nachherUrl && (
               <div>
-                <div style={{ borderRadius:14, overflow:"hidden", marginBottom:10, boxShadow:"0 6px 24px rgba(0,0,0,0.1)" }}>
-                  <img src={nachherUrl} alt="Nachher" style={{ width:"100%", display:"block" }} />
+                {/* Refinement History */}
+                {refinementHistory.length > 0 && (
+                  <div style={{ marginBottom:10 }}>
+                    <p style={{ fontSize:11, color:C.muted, marginBottom:6, fontStyle:"italic" }}>Verlauf der Anpassungen:</p>
+                    <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:4 }}>
+                      {refinementHistory.map((h, i) => (
+                        <div key={i} onClick={() => { setNachherUrl(h.url); setSaved(false); }} style={{ flexShrink:0, cursor:"pointer", borderRadius:8, overflow:"hidden", border:`2px solid ${C.border}`, width:70 }}>
+                          <img src={h.url} alt="" style={{ width:"100%", height:52, objectFit:"cover", display:"block" }} />
+                          <div style={{ padding:"2px 4px", background:C.bg, fontSize:9, color:C.muted, lineHeight:1.3 }}>{i+1}: {h.instruction.slice(0,15)}…</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Generated Image */}
+                <div style={{ borderRadius:14, overflow:"hidden", marginBottom:10, boxShadow:"0 6px 24px rgba(0,0,0,0.1)", position:"relative" }}>
+                  <img src={nachherUrl} alt="Nachher" style={{ width:"100%", display:"block", opacity:refining?0.5:1, transition:"opacity 0.3s" }} />
+                  {refining && (
+                    <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:10 }}>
+                      <LoadingSpinner size={36} />
+                      <p style={{ fontSize:13, color:C.text, fontWeight:600, background:"rgba(255,255,255,0.9)", padding:"4px 12px", borderRadius:20 }}>Verfeinere Bild…</p>
+                    </div>
+                  )}
                 </div>
+
+                {/* ── Refinement Chat ── */}
+                <div style={{ background:C.accentBg, border:`1px solid ${C.accent}44`, borderRadius:14, padding:"12px 14px", marginBottom:10 }}>
+                  <p style={{ fontSize:12, fontWeight:700, color:C.accent, marginBottom:8 }}>✏️ Bild verfeinern – was soll sich noch ändern?</p>
+                  <div style={{ display:"flex", gap:8 }}>
+                    <input
+                      value={refinementInput}
+                      onChange={e => setRefinementInput(e.target.value)}
+                      onKeyDown={e => { if(e.key==="Enter") refineMakeover(); }}
+                      placeholder="z.B. Fliesen dunkler machen, Spiegel hinzufügen…"
+                      style={{ flex:1, padding:"9px 13px", borderRadius:10, border:`1px solid ${C.border}`, fontSize:13, fontFamily:"'DM Sans',sans-serif", background:"white" }}
+                    />
+                    <button onClick={refineMakeover} disabled={refining||!refinementInput.trim()} style={{ padding:"9px 16px", borderRadius:10, background:refining||!refinementInput.trim()?C.border:C.accent, color:"white", border:"none", cursor:"pointer", fontWeight:700, fontSize:14, flexShrink:0 }}>
+                      {refining ? <LoadingSpinner size={16} /> : "→"}
+                    </button>
+                  </div>
+                  {/* Quick suggestions */}
+                  <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginTop:8 }}>
+                    {["Fliesen dunkler", "Licht wärmer", "Farbe heller", "Holz hinzufügen", "Spiegel größer", "Armaturen schwarz"].map(s => (
+                      <button key={s} onClick={() => setRefinementInput(s)} style={{ padding:"4px 10px", borderRadius:20, border:`1px solid ${C.accent}44`, background:"white", color:C.accent, fontSize:11, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>{s}</button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
                 <div style={{ display:"flex", gap:8, marginBottom:10 }}>
-                  <button onClick={() => { setNachherUrl(null); setMaterials(null); generieren(); }} style={{ flex:1, padding:11, background:C.card, border:`2px solid ${C.border}`, borderRadius:50, fontSize:13, fontWeight:600, cursor:"pointer", color:C.text, fontFamily:"'DM Sans',sans-serif" }}>Nochmal</button>
-                  <a href={nachherUrl} download="makeover.jpg" target="_blank" rel="noreferrer" style={{ flex:1, padding:11, background:C.accent, borderRadius:50, fontSize:13, fontWeight:600, color:"white", textDecoration:"none", textAlign:"center", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"'DM Sans',sans-serif" }}>Bild speichern</a>
+                  <button onClick={() => { setNachherUrl(null); setMaterials(null); setRefinementHistory([]); generieren(); }} style={{ flex:1, padding:11, background:C.card, border:`2px solid ${C.border}`, borderRadius:50, fontSize:13, fontWeight:600, cursor:"pointer", color:C.text, fontFamily:"'DM Sans',sans-serif" }}>🔄 Neu</button>
+                  <a href={nachherUrl} download="makeover.jpg" target="_blank" rel="noreferrer" style={{ flex:1, padding:11, background:C.accent, borderRadius:50, fontSize:13, fontWeight:600, color:"white", textDecoration:"none", textAlign:"center", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"'DM Sans',sans-serif" }}>💾 Speichern</a>
                 </div>
+
                 {materials && (
                   <div style={{ background:C.accentBg, border:"1px solid #F0C4A0", borderRadius:12, padding:"14px" }}>
                     <p style={{ fontWeight:700, fontSize:13, color:C.accent, marginBottom:8 }}>Verwendete Materialien:</p>
