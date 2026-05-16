@@ -26,7 +26,44 @@ export default async function handler(req, res) {
   }
 
   const basePrompt = PROMPTS[style] || PROMPTS["bad-modern"];
-  const prompt = chatContext ? `${basePrompt}, ${chatContext}` : basePrompt;
+
+  // User instructions go FIRST – Flux weights beginning of prompt more heavily
+  let prompt;
+  if (chatContext) {
+    // Translate common German renovation terms to English for better AI understanding
+    const translated = chatContext
+      .replace(/badewanne/gi, "bathtub")
+      .replace(/dusche|walk.in.dusche/gi, "walk-in shower")
+      .replace(/fliesen/gi, "tiles")
+      .replace(/grau/gi, "grey")
+      .replace(/weiß|weiss/gi, "white")
+      .replace(/schwarz/gi, "black")
+      .replace(/anstatt|statt/gi, "instead of")
+      .replace(/einbauen/gi, "install")
+      .replace(/entfernen/gi, "remove")
+      .replace(/ersetzen/gi, "replace with")
+      .replace(/boden/gi, "floor")
+      .replace(/wand|wände/gi, "wall")
+      .replace(/decke/gi, "ceiling")
+      .replace(/fenster/gi, "window")
+      .replace(/holz/gi, "wood")
+      .replace(/dunkel/gi, "dark")
+      .replace(/hell/gi, "bright")
+      .replace(/modern/gi, "modern")
+      .replace(/groß|große/gi, "large")
+      .replace(/marmor/gi, "marble")
+      .replace(/spiegel/gi, "mirror")
+      .replace(/waschbecken|waschtisch/gi, "vanity sink")
+      .replace(/toilette|wc/gi, "toilet")
+      .replace(/armatur/gi, "faucet")
+      .replace(/regal/gi, "shelf");
+
+    prompt = `CRITICAL REQUIREMENTS - MUST FOLLOW EXACTLY: ${translated}. Apply these specific changes to this room. ${basePrompt}`;
+  } else {
+    prompt = basePrompt;
+  }
+
+  const strength = chatContext ? 0.80 : 0.65;
 
   try {
     // Step 1: Upload image to fal.ai storage
@@ -65,7 +102,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         image_url: imageUrl,
         prompt: prompt,
-        strength: 0.65,
+        strength: strength,
         num_inference_steps: 28,
         guidance_scale: 3.5,
         num_images: 1,
