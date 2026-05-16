@@ -223,7 +223,7 @@ export default async function handler(req, res) {
   let strength;
   let negativePrompt = "blurry, low quality, distorted, unrealistic";
 
-  const styleHint = getStyleHint(style);
+  const PRESERVE = "IMPORTANT: preserve the exact room layout, same window position, same wall structure, same room dimensions and perspective. Only change materials, colors and fixtures as instructed. Photorealistic interior renovation photography, 8k.";
 
   if (chatContext) {
     const translated = translateDE(chatContext);
@@ -231,23 +231,20 @@ export default async function handler(req, res) {
 
     if (isReplacement) {
       const { remove, add } = parseReplacement(chatContext);
-      strength = 0.95;
+      strength = 0.80; // war 0.95 – zu extrem, zerstörte Raumstruktur
 
       const removeStr = remove.length ? `${remove.map(r => `NO ${r}`).join(", ")}.` : "";
       const addStr = add.length ? `${add.map(a => `ADD ${a}`).join(" AND ")}.` : "";
       if (remove.length) negativePrompt += ", " + remove.join(", ");
 
-      // User instruction FIRST = highest weight in Flux
-      prompt = `${removeStr} ${addStr} ${translated}. Photorealistic interior renovation photography, 8k, professional lighting. Style reference: ${styleHint}.`;
+      prompt = `${removeStr} ${addStr} ${translated}. ${PRESERVE} Style: ${styleHint}.`;
     } else {
-      // Stil-Änderung: user instructions first, style hint only soft reference
-      strength = 0.78;
-      prompt = `${translated}. Photorealistic interior renovation photography, 8k, professional lighting. Style: ${styleHint}.`;
+      strength = 0.70; // war 0.78
+      prompt = `${translated}. ${PRESERVE} Style: ${styleHint}.`;
     }
   } else {
-    strength = 0.65;
-    // Pure style prompt – full detail
-    prompt = basePrompt;
+    strength = 0.62; // war 0.65 – leicht reduziert für bessere Struktur-Erhaltung
+    prompt = `${basePrompt}. Preserve the exact room layout and dimensions, same window and door positions.`;
   }
 
   const isObjReplace = chatContext ? !!isObjectReplacement(chatContext) : false;
