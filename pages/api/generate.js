@@ -160,11 +160,10 @@ export default async function handler(req, res) {
       console.log("Upload error:", uploadErr.message);
     }
 
-    // Step 2: Generate – flux-pro/v1 für deutlich bessere Qualität
+    // Step 2: Generate with flux image-to-image
     const imageUrl = uploadedUrl || `data:image/jpeg;base64,${imageBase64}`;
 
-    // Versuche flux-pro/v1 (besser), fallback auf flux/dev
-    let falRes = await fetch("https://fal.run/fal-ai/flux-pro/v1/redux", {
+    const falRes = await fetch("https://fal.run/fal-ai/flux/dev/image-to-image", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -173,35 +172,14 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         image_url: imageUrl,
         prompt: prompt,
-        image_size: "landscape_4_3",
-        num_inference_steps: 50,
-        guidance_scale: 3.5,
+        strength: strength,
+        num_inference_steps: 35,
+        guidance_scale: 4.0,
         num_images: 1,
         enable_safety_checker: false,
         output_format: "jpeg",
       }),
     });
-
-    // Fallback auf flux/dev wenn redux nicht klappt
-    if (!falRes.ok) {
-      falRes = await fetch("https://fal.run/fal-ai/flux/dev/image-to-image", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Key ${process.env.FAL_KEY}`,
-        },
-        body: JSON.stringify({
-          image_url: imageUrl,
-          prompt: prompt,
-          strength: strength,
-          num_inference_steps: 40,
-          guidance_scale: 4.5,
-          num_images: 1,
-          enable_safety_checker: false,
-          output_format: "jpeg",
-        }),
-      });
-    }
 
     const rawText = await falRes.text();
     let data;
