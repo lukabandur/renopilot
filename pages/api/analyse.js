@@ -2,45 +2,12 @@ export const config = {
   api: { bodyParser: { sizeLimit: "15mb" } },
 };
 
-const SYSTEM = `Du bist ein Innenarchitektur-Experte der Renovierungsmaterialien und Stile in Fotos erkennt.
+const SYSTEM = `Du bist ein Innenarchitektur-Experte der Renovierungsmaterialien in Fotos erkennt. Antworte AUSSCHLIESSLICH mit einem JSON-Objekt, kein Text davor oder danach, keine Markdown-Backticks.
 
-Analysiere das Foto und antworte NUR in diesem exakten JSON-Format (kein Markdown, kein Text außenrum):
+Das JSON muss exakt dieses Format haben:
+{"stil":"Stilname","stimmung":"Kurze Beschreibung 2 Sätze","materialien":[{"bereich":"Bereich","material":"Material","farbe":"Farbe","produkt":"Produkt oder leer","amazon":"kurzer suchbegriff deutsch","preis":"Preisrange"}],"farben":["#hex1","#hex2","#hex3"],"schwierigkeit":"Einfach","budget":"500-2000€","zeitaufwand":"1-2 Wochenenden","umsetzung":["Schritt 1","Schritt 2","Schritt 3","Schritt 4","Schritt 5"],"profi_tipps":["Tipp 1","Tipp 2"],"sofort_upgrades":["Upgrade 1","Upgrade 2"]}
 
-{
-  "stil": "Stilname (z.B. Modernes Spa-Bad, Skandinavische Küche, Japandi Wohnzimmer)",
-  "stimmung": "Kurze Beschreibung der Atmosphäre (2 Sätze)",
-  "materialien": [
-    {
-      "bereich": "Boden/Wand/Decke/Möbel/Armaturen etc.",
-      "material": "Genaue Materialbezeichnung",
-      "farbe": "Farbton",
-      "produkt": "Konkretes Produkt oder Marke wenn erkennbar",
-      "amazon": "kurzer amazon suchbegriff auf deutsch",
-      "preis": "Preisrange z.B. 15-25€/m²"
-    }
-  ],
-  "farben": ["#hexcode1", "#hexcode2", "#hexcode3"],
-  "schwierigkeit": "Einfach/Mittel/Schwierig",
-  "budget": "z.B. 500-2.000€",
-  "zeitaufwand": "z.B. 1-2 Wochenenden",
-  "umsetzung": [
-    "Schritt 1: Konkreter Schritt",
-    "Schritt 2: ...",
-    "Schritt 3: ...",
-    "Schritt 4: ...",
-    "Schritt 5: ..."
-  ],
-  "profi_tipps": [
-    "Wichtiger Tipp 1",
-    "Wichtiger Tipp 2"
-  ],
-  "sofort_upgrades": [
-    "Günstiges Upgrade das man sofort machen kann",
-    "Weiteres sofort-Upgrade"
-  ]
-}
-
-Sei präzise und konkret. Erkenne echte Materialien: Feinsteinzeug, Zellige, Mikrozement, Eiche, Teak, Marmor, Beton usw. Nenne echte Produktnamen wenn möglich (Grohe, Hansgrohe, IKEA, Mapei usw.).`;
+Erkenne echte Materialien: Feinsteinzeug, Zellige, Mikrozement, Eiche, Teak, Marmor usw. Nenne Marken wenn erkennbar (Grohe, Hansgrohe, IKEA, Mapei). Sei konkret und präzise.`;
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
@@ -49,14 +16,12 @@ export default async function handler(req, res) {
   if (!imageBase64) return res.status(400).json({ error: "Kein Bild" });
 
   if (!process.env.ANTHROPIC_API_KEY) {
-    return res.status(200).json({
-      error: "ANTHROPIC_API_KEY fehlt in Vercel Environment Variables."
-    });
+    return res.status(200).json({ error: "ANTHROPIC_API_KEY fehlt in Vercel Environment Variables." });
   }
 
   try {
     const b64 = imageBase64.includes(",") ? imageBase64.split(",")[1] : imageBase64;
-    const media = mimeType || "image/jpeg";
+    const media = (mimeType || "image/jpeg").replace("image/jpg", "image/jpeg");
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -73,32 +38,52 @@ export default async function handler(req, res) {
           role: "user",
           content: [
             { type: "image", source: { type: "base64", media_type: media, data: b64 } },
-            { type: "text", text: "Analysiere dieses Bild genau. Was für Materialien, Stil und Farben erkennst du? Wie kann man diesen Look nachbauen?" },
+            { type: "text", text: "Analysiere dieses Bild. Antworte nur mit dem JSON-Objekt." },
           ],
         }],
       }),
     });
 
     if (!response.ok) {
-      const err = await response.text();
-      return res.status(200).json({ error: `API Fehler: ${response.status}` });
+      const errText = await response.text();
+      console.error("Anthropic error:", response.status, errText);
+      return res.status(200).json({ error: `API Fehler ${response.status}: ${response.statusText}` });
     }
 
     const data = await response.json();
     const raw = data.content?.map(b => b.text || "").join("").trim();
 
-    // Parse JSON from response
+    if (!raw) return res.status(200).json({ error: "Leere Antwort von KI." });
+
+    // Robust JSON extraction
     let result;
     try {
-      const jsonStr = raw.replace(/```json\n?|\n?```/g, "").trim();
-      result = JSON.parse(jsonStr);
-    } catch {
-      return res.status(200).json({ error: "Analyse-Fehler. Bitte erneut versuchen.", raw });
+      // Remove markdown code blocks if present
+      let cleaned = raw
+        .replace(/^```json\s*/i, "")
+        .replace(/^```\s*/i, "")
+        .replace(/\s*```$/i, "")
+        .trim();
+
+      // Find JSON object if there's surrounding text
+      const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+      if (jsonMatch) cleaned = jsonMatch[0];
+
+      result = JSON.parse(cleaned);
+    } catch (parseErr) {
+      console.error("Parse error:", parseErr.message, "Raw:", raw.slice(0, 300));
+      return res.status(200).json({ error: "KI-Antwort konnte nicht verarbeitet werden. Bitte erneut versuchen." });
+    }
+
+    // Validate required fields
+    if (!result.stil || !result.materialien) {
+      return res.status(200).json({ error: "Unvollständige Analyse. Bitte erneut versuchen." });
     }
 
     res.status(200).json({ analysis: result });
 
   } catch (err) {
+    console.error("Handler error:", err);
     res.status(200).json({ error: `Serverfehler: ${err.message}` });
   }
 }
