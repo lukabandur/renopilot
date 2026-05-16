@@ -546,32 +546,45 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers, plan, canGenerate, freeUs
 
   function generieren() {
     if (!file) return;
-    // Paywall check
     if (!canGenerate) { onNeedUpgrade(); return; }
-
     setViewingHistory(null); setLoading(true); setNachherUrl(null); setMaterials(null);
-    setError(null); setProgress(0); setSaved(false);
+    setError(null); setProgress(0); setSaved(false); setNachherBase64(null);
     const timer = setInterval(() => setProgress(p => p < 85 ? p + 2 : p), 600);
-    compressImageFile(file).then(base64 =>
-      fetch("/api/generate", {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ imageBase64:base64, style:stil, chatContext:wunsch||null, plan: plan||"free" }),
-      })
-    ).then(res => res.json())
-    .then(data => {
-      clearInterval(timer);
-      if (data.error) { setError(data.error); setLoading(false); return; }
-      setProgress(100); setNachherUrl(data.imageUrl); setMaterials(data.materials||null);
-      setIsObjReplace(!!data.isObjectReplacement); setLoading(false);
-      if (onGenerated) onGenerated();
-      // Base64 für späteres Refinement speichern
+
+    (async () => {
       try {
-        const imgRes = await fetch(data.imageUrl);
-        const blob = await imgRes.blob();
-        const b64 = await new Promise(r => { const reader = new FileReader(); reader.onload = () => r(reader.result.split(",")[1]); reader.readAsDataURL(blob); });
-        setNachherBase64(b64);
-      } catch { setNachherBase64(null); } // Zähler erhöhen
-    }).catch(err => { clearInterval(timer); setError(err.message); setLoading(false); });
+        const base64 = await compressImageFile(file);
+        const res = await fetch("/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ imageBase64: base64, style: stil, chatContext: wunsch||null, plan: plan||"free" }),
+        });
+        const data = await res.json();
+        clearInterval(timer);
+        if (data.error) { setError(data.error); setLoading(false); return; }
+        setProgress(100);
+        setNachherUrl(data.imageUrl);
+        setMaterials(data.materials || null);
+        setIsObjReplace(!!data.isObjectReplacement);
+        setLoading(false);
+        if (onGenerated) onGenerated();
+        // Base64 für Refinement speichern
+        try {
+          const imgRes = await fetch(data.imageUrl);
+          const blob = await imgRes.blob();
+          const b64 = await new Promise(r => {
+            const reader = new FileReader();
+            reader.onload = () => r(reader.result.split(",")[1]);
+            reader.readAsDataURL(blob);
+          });
+          setNachherBase64(b64);
+        } catch { setNachherBase64(null); }
+      } catch (err) {
+        clearInterval(timer);
+        setError(err.message);
+        setLoading(false);
+      }
+    })();
   }
 
   function handleSaveToPlaner() {
