@@ -508,13 +508,11 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers, plan, canGenerate, freeUs
     setRefinementHistory(prev => [...prev, { url: nachherUrl, instruction }]);
 
     try {
-      // Gespeicherte base64 nutzen, sonst neu laden
-      let base64 = nachherBase64;
+      const base64 = nachherBase64;
       if (!base64) {
-        const imgRes = await fetch(nachherUrl);
-        if (!imgRes.ok) throw new Error("Bild nicht mehr verfügbar – bitte neu generieren.");
-        const blob = await imgRes.blob();
-        base64 = await new Promise(r => { const reader = new FileReader(); reader.onload = () => r(reader.result.split(",")[1]); reader.readAsDataURL(blob); });
+        setError("Bild nicht mehr verfügbar – bitte neu generieren.");
+        setRefining(false);
+        return;
       }
 
       const res = await fetch("/api/generate", {
@@ -530,13 +528,8 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers, plan, canGenerate, freeUs
         setNachherUrl(data.imageUrl);
         if (data.materials) setMaterials(data.materials);
         setSaved(false);
-        // Neue base64 speichern
-        try {
-          const r2 = await fetch(data.imageUrl);
-          const bl2 = await r2.blob();
-          const b2 = await new Promise(r => { const rd = new FileReader(); rd.onload = () => r(rd.result.split(",")[1]); rd.readAsDataURL(bl2); });
-          setNachherBase64(b2);
-        } catch { setNachherBase64(null); }
+        // Base64 direkt vom Server speichern
+        setNachherBase64(data.imageBase64 || null);
       } else {
         setError(data.error || "Fehler beim Verfeinern.");
       }
@@ -570,17 +563,8 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers, plan, canGenerate, freeUs
         setIsObjReplace(!!data.isObjectReplacement);
         setLoading(false);
         if (onGenerated) onGenerated();
-        // Base64 für Refinement speichern
-        try {
-          const imgRes = await fetch(data.imageUrl);
-          const blob = await imgRes.blob();
-          const b64 = await new Promise(r => {
-            const reader = new FileReader();
-            reader.onload = () => r(reader.result.split(",")[1]);
-            reader.readAsDataURL(blob);
-          });
-          setNachherBase64(b64);
-        } catch { setNachherBase64(null); }
+        // Base64 direkt vom Server (kein CORS-Problem)
+        setNachherBase64(data.imageBase64 || null);
       } catch (err) {
         clearInterval(timer);
         setError(err.message);
