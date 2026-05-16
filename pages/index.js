@@ -370,7 +370,7 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers }) {
     setNachherUrl(null); setMaterials(null); setError(null); setSaved(false); setViewingHistory(null);
   }
 
-  const [refinementInput, setRefinementInput] = useState("");
+  const [isObjReplace, setIsObjReplace] = useState(false);
   const [refining, setRefining] = useState(false);
   const [refinementHistory, setRefinementHistory] = useState([]); // [{url, instruction}]
 
@@ -430,7 +430,7 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers }) {
     .then(data => {
       clearInterval(timer);
       if (data.error) { setError(data.error); setLoading(false); return; }
-      setProgress(100); setNachherUrl(data.imageUrl); setMaterials(data.materials||null); setLoading(false);
+      setProgress(100); setNachherUrl(data.imageUrl); setMaterials(data.materials||null); setIsObjReplace(!!data.isObjectReplacement); setLoading(false);
     }).catch(err => { clearInterval(timer); setError(err.message); setLoading(false); });
   }
 
@@ -583,6 +583,17 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers }) {
                     </div>
                   )}
                 </div>
+
+                {/* Hinweis bei Objekt-Austausch */}
+                {isObjReplace && (
+                  <div style={{ background:"#FFF8E1", border:"1px solid #FFD54F", borderRadius:10, padding:"10px 13px", marginBottom:10, display:"flex", gap:8 }}>
+                    <span style={{ fontSize:16, flexShrink:0 }}>💡</span>
+                    <div>
+                      <p style={{ fontSize:12, fontWeight:700, color:"#E65100", marginBottom:2 }}>Objekt-Austausch ist KI-schwierig</p>
+                      <p style={{ fontSize:11, color:"#7A4100", lineHeight:1.5 }}>KI-Bildgeneratoren können Materialien &amp; Farben gut ändern, aber Möbel/Sanitär exakt ersetzen ist schwieriger. Falls das Ergebnis nicht passt: Stil-Änderungen (Farbe, Fliesen, Licht) funktionieren besser. Mehrmals "Nochmal" drücken kann helfen.</p>
+                    </div>
+                  </div>
+                )}
 
                 {/* ── Refinement Chat ── */}
                 <div style={{ background:C.accentBg, border:`1px solid ${C.accent}44`, borderRadius:14, padding:"12px 14px", marginBottom:10 }}>
