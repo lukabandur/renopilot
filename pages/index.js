@@ -487,7 +487,7 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers, plan, canGenerate, freeUs
   const [saved, setSaved] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [viewingHistory, setViewingHistory] = useState(null);
-  const [isObjReplace, setIsObjReplace] = useState(false);
+  const [nachherBase64, setNachherBase64] = useState(null); // gespeicherte base64 für Refinement
   const [refining, setRefining] = useState(false);
   const [refinementInput, setRefinementInput] = useState("");
   const [refinementHistory, setRefinementHistory] = useState([]);
@@ -503,34 +503,38 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers, plan, canGenerate, freeUs
     const instruction = refinementInput;
     setRefinementInput("");
     setRefining(true);
-
-    // Add current image to history
     setRefinementHistory(prev => [...prev, { url: nachherUrl, instruction }]);
 
-    // Fetch the current generated image and convert to base64
     try {
-      const imgRes = await fetch(nachherUrl);
-      const blob = await imgRes.blob();
-      const base64 = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(",")[1]);
-        reader.readAsDataURL(blob);
-      });
+      // Gespeicherte base64 nutzen, sonst neu laden
+      let base64 = nachherBase64;
+      if (!base64) {
+        const imgRes = await fetch(nachherUrl);
+        if (!imgRes.ok) throw new Error("Bild nicht mehr verfügbar – bitte neu generieren.");
+        const blob = await imgRes.blob();
+        base64 = await new Promise(r => { const reader = new FileReader(); reader.onload = () => r(reader.result.split(",")[1]); reader.readAsDataURL(blob); });
+      }
 
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          imageBase64: base64,
-          style: stil,
-          chatContext: instruction,
-        }),
+        body: JSON.stringify({ imageBase64: base64, style: stil, chatContext: instruction, plan: plan||"free" }),
       });
+
+      if (!res.ok) throw new Error(`Server Fehler ${res.status}`);
       const data = await res.json();
+
       if (data.imageUrl) {
         setNachherUrl(data.imageUrl);
         if (data.materials) setMaterials(data.materials);
         setSaved(false);
+        // Neue base64 speichern
+        try {
+          const r2 = await fetch(data.imageUrl);
+          const bl2 = await r2.blob();
+          const b2 = await new Promise(r => { const rd = new FileReader(); rd.onload = () => r(rd.result.split(",")[1]); rd.readAsDataURL(bl2); });
+          setNachherBase64(b2);
+        } catch { setNachherBase64(null); }
       } else {
         setError(data.error || "Fehler beim Verfeinern.");
       }
@@ -559,7 +563,14 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers, plan, canGenerate, freeUs
       if (data.error) { setError(data.error); setLoading(false); return; }
       setProgress(100); setNachherUrl(data.imageUrl); setMaterials(data.materials||null);
       setIsObjReplace(!!data.isObjectReplacement); setLoading(false);
-      if (onGenerated) onGenerated(); // Zähler erhöhen
+      if (onGenerated) onGenerated();
+      // Base64 für späteres Refinement speichern
+      try {
+        const imgRes = await fetch(data.imageUrl);
+        const blob = await imgRes.blob();
+        const b64 = await new Promise(r => { const reader = new FileReader(); reader.onload = () => r(reader.result.split(",")[1]); reader.readAsDataURL(blob); });
+        setNachherBase64(b64);
+      } catch { setNachherBase64(null); } // Zähler erhöhen
     }).catch(err => { clearInterval(timer); setError(err.message); setLoading(false); });
   }
 
