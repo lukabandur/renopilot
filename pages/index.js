@@ -544,6 +544,27 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers }) {
 }
 
 // ─── CHAT TAB ─────────────────────────────────────────────────────────────────
+function renderChatText(text) {
+  return text.split("\n").map((line, i) => {
+    if (!line.trim()) return <div key={i} style={{ height: 5 }} />;
+    const parts = [];
+    let rest = line, key = 0;
+    const pattern = /(\*\*(.+?)\*\*|\[([^\]]+)\]\((https?:\/\/[^)]+)\))/g;
+    let last = 0, m;
+    pattern.lastIndex = 0;
+    while ((m = pattern.exec(rest)) !== null) {
+      if (m.index > last) parts.push(<span key={key++}>{rest.slice(last, m.index)}</span>);
+      if (m[2]) parts.push(<strong key={key++} style={{ fontWeight: 700 }}>{m[2]}</strong>);
+      else if (m[3] && m[4]) parts.push(<a key={key++} href={m[4]} target="_blank" rel="noopener noreferrer" style={{ color: C.accent, textDecoration: "underline", textDecorationStyle: "dotted" }}>{m[3]}</a>);
+      last = m.index + m[0].length;
+    }
+    if (last < rest.length) parts.push(<span key={key++}>{rest.slice(last)}</span>);
+    const isBullet = line.startsWith("• ") || line.startsWith("- ");
+    if (isBullet) return <div key={i} style={{ display: "flex", gap: 6, marginBottom: 2 }}><span style={{ flexShrink: 0, marginTop: 1 }}>•</span><span>{parts}</span></div>;
+    return <div key={i} style={{ marginBottom: 2 }}>{parts}</div>;
+  });
+}
+
 function ChatTab({ messages, setMessages }) {
   const [inputText, setInputText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -577,8 +598,8 @@ function ChatTab({ messages, setMessages }) {
           <div key={i} className="fu" style={{ display:"flex", justifyContent:msg.role==="user"?"flex-end":"flex-start", marginBottom:14, gap:8, alignItems:"flex-end" }}>
             {msg.role==="assistant" && <div style={{ width:30, height:30, background:C.accent, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, flexShrink:0 }}>🔨</div>}
             <div style={{ maxWidth:"85%" }}>
-              <div style={{ background:msg.role==="user"?C.accent:C.card, color:msg.role==="user"?"#fff":C.text, border:msg.role==="assistant"?`1px solid ${C.border}`:"none", borderRadius:msg.role==="user"?"16px 16px 3px 16px":"16px 16px 16px 3px", padding:"11px 15px", fontSize:14, lineHeight:1.65, whiteSpace:"pre-wrap" }}>
-                {msg.text}
+              <div style={{ background:msg.role==="user"?C.accent:C.card, color:msg.role==="user"?"#fff":C.text, border:msg.role==="assistant"?`1px solid ${C.border}`:"none", borderRadius:msg.role==="user"?"16px 16px 3px 16px":"16px 16px 16px 3px", padding:"11px 15px", fontSize:14, lineHeight:1.65 }}>
+                {msg.role === "user" ? msg.text : renderChatText(msg.text)}
               </div>
             </div>
           </div>
