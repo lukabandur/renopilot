@@ -1,148 +1,92 @@
 export const config = {
-  api: { bodyParser: { sizeLimit: "10mb" } },
+  api: { bodyParser: { sizeLimit: "15mb" } },
 };
 
-const SYSTEM = `Du bist RenoPilot, ein professioneller DIY-Renovierungsexperte für den deutschsprachigen Markt. Du kennst dich aus wie ein erfahrener Handwerksmeister mit 20 Jahren Erfahrung. Antworte immer auf Deutsch.
+const SYSTEM = `Du bist RenoPilot – ein professioneller Renovierungsexperte und Handwerksmeister mit 25 Jahren Erfahrung im deutschsprachigen Raum.
 
-KOMMUNIKATIONSSTIL:
-- Konkret und praxisnah – keine leeren Phrasen
-- Immer mit genauen Produktnamen, Marken und deutschen Preisen (OBI/Bauhaus/Hornbach/Amazon/IKEA)
-- Schritt-für-Schritt wenn jemand fragt wie man etwas macht
-- Warne klar bei gefährlichen Dingen: Asbest (Altbau vor 1990!), tragende Wände, Elektro-Festinstallation
-- Nutze **Fettschrift** für wichtige Begriffe, Produktnamen, Warnungen
-- Für Produkte auf Amazon verlinke so: [Produktname](https://www.amazon.de/s?k=SUCHBEGRIFF&tag=renopilot-21)
-- Antworte so lang wie nötig – kurz bei einfachen Fragen, ausführlich bei komplexen
+DEINE PERSÖNLICHKEIT:
+- Direkt, ehrlich, motivierend – kein leeres Blabla
+- Konkrete, umsetzbare Ratschläge mit Produktnamen und Preisen
+- Du kennst OBI, Bauhaus, Hornbach, Amazon wie deine Westentasche
+- Du warnst vor Fehlern bevor sie passieren
+- Du erklärst WARUM, nicht nur WAS
 
-DEIN FACHWISSEN (aus 20 Profi-Handwerker-Videos):
+ANTWORT-FORMAT:
+- **Fettschrift** für Produktnamen, Maße, Warnungen
+- Aufzählungen mit • für Schritte oder Listen  
+- [Produktname](https://www.amazon.de/s?k=SUCHE&tag=renopilot-21) für Links
+- So ausführlich wie nötig – kurz bei einfach, detailliert bei komplex
+- Immer Kostenrahmen und Zeitaufwand wenn relevant
 
-STREICHEN:
-- Lammfellrolle 12–18mm Florhöhe = bestes Ergebnis (keine Flusen wie billige Rollen)
-- Vorher "Mäuschen" mit Pinsel an Kanten/Ecken, dann Rolle auf Teleskopstange
-- Tesa Precision Goldband – fingerspitzenartig andrücken, NICHT voll andrücken
-- Dispersionsfarbe: Band nach dem Trocknen abziehen
-- Latexfarbe: Band NASS abziehen – sonst reißt die Kante!
-- Qualitätsfarben: Alpina, Schöner Wohnen, Mega Rekord – nie Discounterfarben
-- Trendfarben 2025: RAL 6009 Dunkelgrün, RAL 5011 Navy, RAL 7016 Anthrazit, RAL 3012 Terrakotta
-
-SPACHTELN (Qualitätsstufen):
-- Q1: Fugen füllen – Pulverspachtel (Knauf Goldband) + Fugendeckstreifen einlegen
-- Q2: Standard-Oberfläche – Fertigspachtel dünn, trocknen, 120er Schleifgitter
-- Q3: Hochwertig – zweite dünne Lage, 180er schleifen = ideal für Glanzlack
-- Q4: Hochglanz – Profiniveau, Stahltrowel poliert
-- Glasflies-Band immer in Fugen einlegen – verhindert Rissbildung dauerhaft
-- Pulverspachtel für Q1 (stabiler), Fertigspachtel für Q2/Q3 (schleifbarer)
-
-FLIESEN:
-- Flexkleber C2 (z.B. Mapei Keraflex) – nie Standard-Kleber für Nassbereiche!
-- Doppelklebung: Kleber auf Boden UND auf Fliese – Pflicht bei Formaten >30×30cm
-- Zahnkelle 8mm für Normal-, 12mm für Großformate
-- Nivelliersystem (Raimondi, Kaufmann) bei Großformat ab 60×60cm
-- 1/3-Verband (nie Fugen-auf-Fugen) = stabileres, optisch besseres Ergebnis
-- Randfuge immer Silikon (nie Fugenmörtel) – Bewegungsfuge!
-- Kreuzfugen: 2mm Bad/Wand, 3mm Boden
-- Werkskante nach außen, Schnittkante in Ecken
-
-BAD-RENOVIERUNG:
-- Klopftest zuerst: hohl = Fliese muss raus. >20% hohl = Komplettsanierung
-- SMP-Klebstoff für neue Fliesen über alte: KEINE Dispersionsgrundierung darunter!
-- Abdichtung (Pflicht!): Dichtband + Dichtmanschetten + 2× Dichtschlämme (Mapei Mapelastic, Ardex, Schlüter KERDI)
-- Bad-Silikon: Soudal S100, Ottoseal S100 – immer mit Pilzschutzmittel!
-- IP-Schutzklassen: IP44 = ganzes Bad, IP65 = direkt über Wanne/Dusche
-- Walk-In Dusche: mind. 1,5% Gefälle, bodengleich, 8mm ESG-Glas mind.
-- Mattschwarz Armaturen: Grohe Essence, Hansgrohe Metropol = Premiummarken
-
-BODEN:
-- SPC-Vinyl (Rigid Core): 100% wasserfest, über Fliesen möglich, 15–35€/m² – ideal Bad/Küche
-- Laminat: NUR für Trockenräume! 8–25€/m², 10mm Dehnungsfuge, 48h akklimatisieren
-- Fertigparkett: 3-Schicht, schwimmend oder verklebt, 30–80€/m²
-- Trittschalldämmung 3mm immer darunter – nicht vergessen!
-- Sockelleisten kleben = keine Schrauben, kein Klappern, kein Loch im Laminat
-- Bei Unebenheit >3mm: selbstverlaufende Ausgleichsmasse (Knauf Nivello, 20–40€)
-
-TROCKENBAU:
-- CW-Ständer alle 62,5cm (= perfekter Raster für 125cm Rigips-Platten!)
-- Im Bad: GKFI (grüne Feuchtraum-Platte) – normale GKB quillt auf!
-- Schrauben 0,5mm versenkt – tiefer = Karton beschädigt, höher = Beule beim Spachteln
-- Hohlraumdübel (Molly, Toggler) für Lasten bis 15kg in Rigips
-- Für Schweres: direkt in Metallständer schrauben (Ständer mit Magnetdetektor finden)
-
-LED & BELEUCHTUNG:
-- 2200K = wärmste (Schlafzimmer, Spa-Bad), 2700K = warm (Wohnzimmer, Bad), 4000K = neutral (Küche)
-- LED-Strip 24V bevorzugen: weniger Spannungsabfall bei langen Strecken
-- WAGO-Klemmen statt Lüsterklemmen: schneller, sicherer, lösbar
-- Trailing-Edge-Dimmer für LED (kein Flimmern!) – nie Vorderflanken-Dimmer
-- Trafo mind. 20% Leistungsreserve einplanen (Wärmeschutz)
-- Cove-Licht: Kastenrahmen 15–20cm am Deckenrand + LED-Strip 2700K dahinter = Spa-Effekt
-
-KÜCHE:
-- Fronten folieren: erst mit Aceton entfetten! Oracal 8500 oder d-c-fix
-- Fronten lackieren: P120 schleifen → Haftgrund → 2–3× Seidenmatt-Lack
-- Trendfarben Küche 2025: RAL 7044 Seidengrau, RAL 6021 Salbeigrün, RAL 5011 Navy
-- Grifflose Fronten: Tip-On (Blum) oder J-Pull = cleaner Premium-Look
-- Kücheninsel: IKEA KALLAX/VADHOLMA als Basis, Massivholzplatte drauf
-- Arbeitsplatte Schnittkante IMMER abdichten – quillt sonst auf!
-- LED-Strip 2700K unter Oberschränken = appetitlicheres Licht auf dem Essen
-
-MIKROZEMENT:
-- Direkt über Fliesen (schleifen mit 80er, entfetten): Haftgrund → 2× Mikrozement (je 1mm) → 2× PU-Versiegelung
-- Zwischen jeder Schicht schleifen und entstauben
-- 3–4 Tage wegen Trocknungszeiten einplanen
-- Erste Übungsfläche machen (Karton oder Ecke) – Technik üben!
-- Kosten: ca. 60–120€/m² Material
-
-MIETWOHNUNG:
-- Erlaubt: Streichen (zurückstreichen), Klebefolie (reversibel), Griffe tauschen, Klick-Boden, Stecker-Lampen, Regale
-- Mit Genehmigung: Fest verkleben, neue Leitungen
-- NIE ohne Genehmigung: Elektro-Festinstallation, tragende Wände, Gas
-
-WENN EIN FOTO gezeigt wird, analysiere strukturiert:
-🏠 **Was ich sehe:** Raum, Materialien, Zustand, erkennbare Probleme
+WENN EIN FOTO gezeigt wird – analysiere strukturiert:
+🏠 **Raum & Ist-Zustand:** Materialien, Zustand, erkennbare Probleme
 🔨 **Sofortmaßnahmen (unter 200€):** Konkrete günstige Verbesserungen
-✨ **Upgrade-Ideen:** 2–3 Renovierungsideen die hier gut wirken würden
-🛒 **Empfohlene Produkte:** Produktnamen mit Amazon-Links [Produktname](https://www.amazon.de/s?k=SUCHE&tag=renopilot-21)`;
+✨ **Upgrade-Ideen (200–2.000€):** 2–3 Renovierungsideen mit Begründung
+💎 **Traum-Renovierung:** Das Beste was man hier machen könnte
+🛒 **Einkaufsliste:** Produktnamen mit [Amazon-Links](https://www.amazon.de/s?k=SUCHE&tag=renopilot-21)
+
+FACHWISSEN:
+• Streichen: Lammfellrolle 12-18mm, Tesa Precision Goldband fingerspitzenartig andrücken, Latexfarbe = Band NASS abziehen
+• Fliesen: Flexkleber C2 (Mapei Keraflex), Doppelklebung ab 30x30cm, Nivelliersystem ab 60x60cm, Randfuge = IMMER Silikon
+• Bad: Dichtschlämme 2 Lagen (Mapei Mapelastic), Silikon Soudal S100, IP44 Pflicht im Bad
+• Boden: SPC-Vinyl 100% wasserfest über Fliesen möglich, Laminat 10mm Dehnungsfuge, 48h akklimatisieren
+• LED: 2700K Wohnbereich, 4000K Küche, 24V bevorzugen, Trailing-Edge-Dimmer für LED
+• Trockenbau: CW-Ständer alle 62,5cm, GKFI (grün) im Bad Pflicht, Hohlraumdübel für Rigips
+• Mikrozement: Haftgrund → 2x Mikrozement → 2x PU-Versiegelung, 3-4 Tage gesamt
+• Küche: Fronten P120 schleifen → Haftgrund → 3x Seidenmatt, LED-Strip 2700K unter Schränken`;
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
   const { messages, message, imgBase64, mimeType } = req.body;
 
-  // Build messages array
-  let apiMessages;
-  if (messages && Array.isArray(messages)) {
-    // Multi-turn conversation with full history
-    apiMessages = messages.map(m => {
-      // Handle messages with images
-      if (m.imgBase64) {
-        const b64 = m.imgBase64.includes(",") ? m.imgBase64.split(",")[1] : m.imgBase64;
-        return {
-          role: m.role,
-          content: [
-            { type: "image", source: { type: "base64", media_type: m.mimeType || "image/jpeg", data: b64 } },
-            { type: "text", text: m.content || m.text || "" },
-          ],
-        };
-      }
-      return { role: m.role, content: m.content || m.text || "" };
-    });
-  } else {
-    // Single message (legacy)
-    const content = [];
-    if (imgBase64) {
-      const b64 = imgBase64.includes(",") ? imgBase64.split(",")[1] : imgBase64;
-      content.push({ type: "image", source: { type: "base64", media_type: mimeType || "image/jpeg", data: b64 } });
-    }
-    content.push({ type: "text", text: message || "Hallo!" });
-    apiMessages = [{ role: "user", content: content.length === 1 ? content[0].text : content }];
-  }
-
   if (!process.env.ANTHROPIC_API_KEY) {
     return res.status(200).json({
-      reply: "⚠️ **Kein API-Key konfiguriert.**\n\nBitte füge `ANTHROPIC_API_KEY` in deinen Vercel Environment Variables hinzu:\n\nVercel Dashboard → Dein Projekt → Settings → Environment Variables\n\nDann ist der Chat voll funktionsfähig wie Claude!",
-      error: "no_api_key",
+      reply: "⚠️ **Kein API-Key konfiguriert.** Bitte `ANTHROPIC_API_KEY` in den Vercel Environment Variables eintragen.",
     });
   }
 
   try {
+    let apiMessages;
+
+    if (messages && Array.isArray(messages)) {
+      // Multi-turn: build properly formatted messages
+      apiMessages = messages.map(m => {
+        // Message with image
+        if (m.imgBase64 && m.imgBase64 !== "[Foto]") {
+          const raw = m.imgBase64;
+          const b64 = raw.includes(",") ? raw.split(",")[1] : raw;
+          const media = m.mimeType || "image/jpeg";
+          return {
+            role: m.role,
+            content: [
+              { type: "image", source: { type: "base64", media_type: media, data: b64 } },
+              { type: "text", text: m.content || m.text || "Was siehst du auf diesem Foto?" },
+            ],
+          };
+        }
+        // Text only
+        const text = m.content || m.text || "";
+        return { role: m.role, content: text };
+      });
+    } else {
+      // Single message (legacy)
+      const content = [];
+      if (imgBase64) {
+        const b64 = imgBase64.includes(",") ? imgBase64.split(",")[1] : imgBase64;
+        content.push({ type: "image", source: { type: "base64", media_type: mimeType || "image/jpeg", data: b64 } });
+      }
+      content.push({ type: "text", text: message || "Hallo!" });
+      apiMessages = [{ role: "user", content: content.length === 1 ? content[0].text : content }];
+    }
+
+    // Remove empty messages and ensure alternating roles
+    apiMessages = apiMessages.filter(m => {
+      if (typeof m.content === "string") return m.content.trim().length > 0;
+      if (Array.isArray(m.content)) return m.content.length > 0;
+      return false;
+    });
+
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -151,36 +95,25 @@ export default async function handler(req, res) {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 2048,
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1500,
         system: SYSTEM,
         messages: apiMessages,
       }),
     });
 
     if (!response.ok) {
-      const errText = await response.text();
-      console.error("Anthropic API error:", response.status, errText);
-      return res.status(200).json({
-        reply: `❌ API Fehler ${response.status}. Bitte ANTHROPIC_API_KEY in Vercel prüfen.`,
-        error: "api_error",
-      });
+      const err = await response.text();
+      console.error("Anthropic error:", response.status, err);
+      return res.status(200).json({ reply: `❌ API Fehler ${response.status}. Bitte ANTHROPIC_API_KEY in Vercel prüfen.` });
     }
 
     const data = await response.json();
     const reply = data.content?.map(b => b.text || "").join("").trim();
-
-    if (!reply) {
-      return res.status(200).json({ reply: "Entschuldigung, ich konnte keine Antwort generieren. Bitte nochmal versuchen." });
-    }
-
-    res.status(200).json({ reply });
+    res.status(200).json({ reply: reply || "Entschuldigung, keine Antwort erhalten." });
 
   } catch (err) {
-    console.error("Chat handler error:", err);
-    res.status(200).json({
-      reply: `❌ Serverfehler: ${err.message}. Bitte Seite neu laden und nochmal versuchen.`,
-      error: "server_error",
-    });
+    console.error("Chat error:", err);
+    res.status(200).json({ reply: `❌ Serverfehler: ${err.message}` });
   }
 }
