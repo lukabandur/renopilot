@@ -24,7 +24,74 @@ const C = {
 };
 
 const globalCSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'DM Sans', sans-serif; background: #F8F5F0; overscroll-behavior: none; }
+  textarea, input, button { font-family: 'DM Sans', sans-serif; }
+
+  /* Smooth scrolling */
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #EDE8DF; border-radius: 3px; }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes blink {
+    0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+    40%            { opacity: 1;   transform: scale(1); }
+  }
+  @keyframes shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.5; }
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  /* Card hover lift */
+  .fu { animation: fadeUp 0.35s ease both; }
+  .fi { animation: fadeIn 0.3s ease both; }
+
+  /* Loading skeleton */
+  .skeleton {
+    background: linear-gradient(90deg, #f0ece6 25%, #e8e3dc 50%, #f0ece6 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 8px;
+  }
+
+  /* Tab active indicator */
+  .tab-active { position: relative; }
+  .tab-active::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 20%; right: 20%;
+    height: 2px;
+    background: #C4622D;
+    border-radius: 2px;
+  }
+
+  /* Button press effect */
+  button:active { transform: scale(0.97); }
+  a:active { transform: scale(0.97); }
+
+  /* Image lazy load fade */
+  img { transition: opacity 0.3s ease; }
+  img[loading="lazy"] { opacity: 0; }
+  img[loading="lazy"].loaded { opacity: 1; }
+`;
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'DM Sans', sans-serif; background: ${C.bg}; }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
@@ -181,6 +248,78 @@ const ANLEITUNGEN = [
     fehler:"Riss nicht aufweiten, kein Armierungsband, Farbton nicht anpassen.",
     youtube:"https://www.youtube.com/results?search_query=außenputz+riss+reparieren+anleitung",
     amazon:amazonLink("außenputz reparatur set armierungsband") },
+  { id:"parkett", emoji:"🪵", titel:"Parkett & Vinyl verlegen", schwierigkeit:"Mittel", zeit:"1–2 Tage", kosten:"150–600€",
+    img:"https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=120&q=80",
+    werkzeug:["Stichsäge","Gummihammer","Zugeisen","Abstandshalter 10mm","Wasserwaage"],
+    schritte:["48h akklimatisieren (Pakete geöffnet, liegend im Raum)","Untergrund prüfen: max. 3mm Unebenheit – sonst Ausgleichsmasse (Knauf Nivello)","Trittschalldämmung auslegen, Stöße 15cm überlappen","Erste Reihe: 10mm Abstandshalter zur Wand – IMMER!","Klicksystem: Winkel einsetzen und nach unten drücken","Richtung: längs zur Fensterseite = Raum wirkt größer","Letzte Reihe mit Zugeisen eindrücken","Sockelleisten KLEBEN – nie auf Laminat schrauben!"],
+    tipp:"SPC-Vinyl = 100% wasserfest für Bad und Küche. Laminat nur für Trockenräume!",
+    fehler:"Dehnungsfuge vergessen, zu früh betreten (24h warten), Türrahmen nicht untergeschoben.",
+    youtube:"https://www.youtube.com/results?search_query=vinyl+laminat+verlegen+anleitung",
+    amazon:amazonLink("spc vinyl klick boden verlegen set") },
+  { id:"kueche-fronten", emoji:"🍳", titel:"Küchenfronten lackieren", schwierigkeit:"Mittel", zeit:"2–3 Tage", kosten:"80–300€",
+    img:"https://images.unsplash.com/photo-1556909211-36987e6e9a65?w=120&q=80",
+    werkzeug:["Exzenterschleifer P120/180","Haftgrund Zinsser BIN","Seidenmatt-Lack","Schaumstoffrolle 4mm","Abklebeband","Schraubenzieher"],
+    schritte:["Fronten ausbauen und nummerieren","Mit Aceton entfetten – der wichtigste Schritt!","P120 schleifen für Haftung, Staub absaugen","Haftgrund dünn auftragen, 2h trocknen","1. Farbschicht mit Schaumstoffrolle (kurzflorig = keine Struktur)","4h trocknen, P180 leicht anschleifen","2. und 3. Farbschicht mit je 4h Trockenzeit","Fronten einbauen, Scharniere justieren"],
+    tipp:"Zinsser BIN haftet auf fast allem – auch glatten MDF-Fronten ohne langes Schleifen.",
+    fehler:"Zu dicke Schichten = Läufer. Nicht entfettet = Ablösung nach Wochen.",
+    youtube:"https://www.youtube.com/results?search_query=küchenfronten+lackieren+anleitung",
+    amazon:amazonLink("zinsser bin haftgrund küche fronten lackieren") },
+  { id:"led-strip", emoji:"💡", titel:"LED-Strip & Cove-Licht installieren", schwierigkeit:"Leicht", zeit:"2–4 Stunden", kosten:"30–120€",
+    img:"https://images.unsplash.com/photo-1600210492493-0946911123ea?w=120&q=80",
+    werkzeug:["LED-Strip 24V COB","Trafo (20% Reserve)","WAGO-Klemmen","Alu-Profil + Diffusor","Cuttermesser"],
+    schritte:["Länge messen, Wattzahl berechnen (W/m × Meter)","Trafo wählen: min. 20% mehr als Gesamtwatt","Alu-Profil zuschneiden und mit Klebeband oder Schrauben montieren","Strip NUR an Schnittmarkierungen kürzen!","Strip einlegen, Diffusor aufsetzen","Anschluss mit WAGO-Klemmen (kein Löten nötig)","Trailing-Edge-Dimmer anschließen (kein Flimmern!)","Testen bevor alles verklebt wird"],
+    tipp:"24V = kein Spannungsabfall. Bei 12V und mehr als 3m wird Licht ungleichmäßig.",
+    fehler:"Vorderflanken-Dimmer = Flimmern. Trafo zu schwach = überhitzt. Strip falsch herum.",
+    youtube:"https://www.youtube.com/results?search_query=led+strip+cove+licht+anleitung",
+    amazon:amazonLink("led strip 24v cob warmweiß 2700k trafo dimmer") },
+  { id:"rigips-wand", emoji:"🏗️", titel:"Rigips-Trennwand bauen", schwierigkeit:"Mittel", zeit:"2–3 Tage", kosten:"200–600€",
+    img:"https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=120&q=80",
+    werkzeug:["Akkuschrauber","Blechschere für Profile","Wasserwaage 1m","Rigips-Schrauben 3,5×35mm","Spachtel"],
+    schritte:["Grundriss auf Boden anzeichnen, Wasserwaage zur Decke übertragen","UW-Profile an Boden + Decke mit Dübeln alle 50cm","CW-Ständer alle 62,5cm – Raster für 125cm Platten!","Leerrohr für Kabel einziehen VOR dem Beplatten","Erste Seite: Schrauben alle 25cm, Kopf 0,5mm versenkt","Dämmwolle einlegen (Steinwolle für Schallschutz)","Zweite Seite – Plattenstöße versetzt!","Fugenspachtel + Glasflies-Band einbetten, trocknen, schleifen"],
+    tipp:"Im Bad: GKFI (grüne Feuchtraumplatten) verwenden – weiße GKB quillt auf!",
+    fehler:"Ständer falsch abständig, Glasflies vergessen = Riss nach 6 Monaten.",
+    youtube:"https://www.youtube.com/results?search_query=rigips+trennwand+bauen+anleitung",
+    amazon:amazonLink("rigips ständerwerk cw uw profil trockenbau set") },
+  { id:"wpc-terrasse", emoji:"🌴", titel:"WPC-Terrasse verlegen", schwierigkeit:"Mittel", zeit:"1–2 Tage", kosten:"500–2.000€",
+    img:"https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=120&q=80",
+    werkzeug:["Kreissäge oder Stichsäge","Akkuschrauber","Wasserwaage","Stelzlager höhenverstellbar","Abstandshalter 5mm"],
+    schritte:["Untergrund reinigen – alter Belag kann bleiben wenn stabil","Stelzlager setzen alle 50cm, Flucht mit Schnur prüfen","2% Gefälle einplanen (weg vom Haus)","Tragebalken auf Stelzlager – Holz oder Alu alle 40–50cm","Erste Diele mit 10mm Abstand zur Wand","Unsichtbare Clips einsetzen – kein Schraubloch sichtbar!","Letzte Reihe zuschneiden","Abschlussprofile an allen Rändern montieren"],
+    tipp:"WPC 48h akklimatisieren. Im Sommer dehnt WPC sich aus – Dehnfugen einhalten!",
+    fehler:"Zu wenig Gefälle = Pfützen, keine Dehnfuge = Wellen im Sommer.",
+    youtube:"https://www.youtube.com/results?search_query=wpc+dielen+verlegen+terrasse",
+    amazon:amazonLink("wpc dielen terrasse stelzlager clip unsichtbar set") },
+  { id:"arbeitsplatte", emoji:"🔨", titel:"Arbeitsplatte wechseln", schwierigkeit:"Mittel", zeit:"1 Tag", kosten:"100–500€",
+    img:"https://images.unsplash.com/photo-1556909211-36987e6e9a65?w=120&q=80",
+    werkzeug:["Stichsäge mit Holzblatt","Oberfräse für saubere Ausschnitte","Silikon + Pistole","Montagekleber","Maßband"],
+    schritte:["Wasser unter Spüle abstellen, Siphon abbauen","Alte Platte von unten lösen (Schrauben in Eckverbindern)","Neue Platte auf Maß zuschneiden – 1mm zu groß lassen","Spülenausschnitt mit Schablone anzeichnen","Stichsäge: erst Loch bohren, dann Richtung Gegenfase schneiden","Schnittkanten SOFORT abdichten – quillt sonst auf!","Platte einlegen, von unten verschrauben","Silikon an Wand und Spülenrand, 24h trocknen"],
+    tipp:"Schnittkante nie unbehandelt lassen – quillt garantiert auf!",
+    fehler:"Ausschnitt zu groß, Kante nicht abgedichtet, Silikon zu früh belastet.",
+    youtube:"https://www.youtube.com/results?search_query=arbeitsplatte+küche+wechseln",
+    amazon:amazonLink("holzarbeitsplatte küche massiv buche eiche geölt") },
+  { id:"abdichtung-bad", emoji:"🛡️", titel:"Bad abdichten (Dusche & Wanne)", schwierigkeit:"Mittel", zeit:"2 Tage", kosten:"80–200€",
+    img:"https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=120&q=80",
+    werkzeug:["Dichtschlämme Mapei Mapelastic","Dichtband + Dichtmanschetten","Pinsel 10cm","Zahnspachtel","Latexhandschuhe"],
+    schritte:["Untergrund reinigen: kein Staub, kein Fett","1. Lage Dichtschlämme dünn auftragen","Dichtband in ALLE Ecken einbetten während Lage noch nass!","Dichtmanschetten über alle Rohre einbetten","1. Lage trocknen: mind. 4h (besser über Nacht)","2. Lage quer zur ersten – Kreuzverband verhindert Risse","24h trocknen vor Fliesenarbeiten","Mit Sprühflasche testen: kein Durchfeuchten"],
+    tipp:"Dichtband einbetten = es muss in der ersten Lage versinken. Nur überstreichen reicht nicht!",
+    fehler:"Nur 1 Lage, Band nicht eingebettet, Trockenzeit unterschritten = undicht nach 1 Jahr.",
+    youtube:"https://www.youtube.com/results?search_query=bad+abdichten+dichtschlämme+anleitung",
+    amazon:amazonLink("mapei mapelastic dichtschlämme bad dusche set") },
+  { id:"bodengleiche-dusche", emoji:"🚿", titel:"Bodengleiche Dusche bauen", schwierigkeit:"Schwer", zeit:"3–5 Tage", kosten:"500–2.000€",
+    img:"https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=120&q=80",
+    werkzeug:["Ablaufrinne oder Punktablauf","Gefälleestrich-Set","Dichtschlämme 2-lagig","Flexkleber C2","Wasserwaage 1m"],
+    schritte:["Ablauf positionieren: weit vom Duschkopf entfernt","Gefälleestrich anmischen: 1,5–2% Gefälle zur Rinne","Estrich aufbringen, Gefälle prüfen (Wasserwaage + Messen)","48h trocknen, Klopftest: kein Hohlklang!","2-lagige Abdichtung mit Dichtband in allen Ecken","Fliesen mit Flexkleber C2 verlegen – Gefälle beibehalten","Schlüter KERDI-Profil am Übergang Dusche/Bad","Randfuge: NUR Silikon (Soudal S100) – nie Fugenmörtel!"],
+    tipp:"Wasser-Test: Wasser draufgießen und beobachten – muss restlos ablaufen ohne Pfützen.",
+    fehler:"Zu wenig Gefälle, kein Dichtband in Ecken, falscher Kleber.",
+    youtube:"https://www.youtube.com/results?search_query=bodengleiche+dusche+bauen+anleitung",
+    amazon:amazonLink("bodengleiche dusche ablaufrinne gefälleestrich set") },
+  { id:"fliesenspiegel-bekleben", emoji:"🎨", titel:"Küche & Fliesen folieren", schwierigkeit:"Leicht", zeit:"2–4 Stunden", kosten:"30–100€",
+    img:"https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=120&q=80",
+    werkzeug:["Klebefolie d-c-fix oder Oracal","Cuttermesser + Stahllineal","Gummirakel","Isopropanol","Fön"],
+    schritte:["Mit Isopropanol entfetten – komplett trocknen lassen","Folie ausmessen + 3cm Übermaß","Trägerpapier 10cm abziehen, Kante ausrichten","Rakel von oben nach unten – keine Blasen!","Überlappungen an Fugen einschneiden","Blasen: Nadel einstechen, Fön erwärmen, herausdrücken","Ecken mit Fön erwärmen für bessere Haftung","Schalter: X einschneiden, Ecken ausklappen"],
+    tipp:"Spüliwasser (1 Tropfen auf 1L) ermöglicht Positionieren auf glatten Flächen.",
+    fehler:"Nicht entfettet = Ablösung, zu stark gezogen = Falten.",
+    youtube:"https://www.youtube.com/results?search_query=klebefolie+fliesen+küche+anleitung",
+    amazon:amazonLink("klebefolie selbstklebend möbel fliesen dc-fix") },
 ];
 
 // ─── ONBOARDING ───────────────────────────────────────────────────────────────
@@ -2009,25 +2148,49 @@ function InspoTab() {
 
 // ─── IDEEN TAB ────────────────────────────────────────────────────────────────
 const TRENDS = [
-  { cat:"Bad", title:"Wellness-Bad: Walk-In Dusche", desc:"Bodengleiche Dusche mit Regendusche und Glasabtrennung. Der größte Trend im Badbereich. Kein Stemmen nötig – Gefälleestrich einbauen, Dichtschlämme, Glaswand aufstellen.", how:"Installateur + DIY-Teil", budget:"1.500–5.000€", emoji:"🚿", img:"https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=600&h=220&fit=crop&q=80", amazon:"walk-in dusche glaswand 8mm ESG" },
-  { cat:"Bad", title:"Freistehende Badewanne", desc:"Ein Statement-Stück das jeden Raum transformiert. Acryl oder Gusseisen, Boden-Armatur daneben. Sieht aus wie ein Designhotel.", how:"Installateur für Anschluss", budget:"800–3.000€", emoji:"🛁", img:"https://images.unsplash.com/photo-1507652313519-d4e9174996dd?w=600&h=220&fit=crop&q=80", amazon:"freistehende badewanne acryl oval" },
-  { cat:"Bad", title:"Mikrozement fugenlos", desc:"Beton-Look ohne Fugen – direkt über Fliesen. Kein Stemmen! 3 Schichten auftragen, PU-Versiegelung. Zeitloser Luxus-Look der nie altert.", how:"DIY möglich mit Übung", budget:"60–120€/m²", emoji:"🏛️", img:"https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=600&h=220&fit=crop&q=80", amazon:"mikrozement set boden wand versiegelung" },
-  { cat:"Bad", title:"Mattschwarz Armaturen & Spiegel", desc:"Kompletter Stil-Shift für unter 500€. Armaturen tauschen ist DIY-fähig: Wasser ab, Siphon lösen, neue Armatur. LED-Spiegel mit IP44 als Krönung.", how:"DIY – 2–4 Stunden", budget:"200–600€", emoji:"🖤", img:"https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=600&h=220&fit=crop&q=80", amazon:"grohe armatur mattschwarz bad set" },
-  { cat:"Bad", title:"Zellige-Fliesen Rückwand", desc:"Handgemachte marokkanische Fliesen 10×10cm. Jede einzigartig – Charme durch Unvollkommenheit. Über alte Fliesen kleben mit Spezialkleber.", how:"DIY – Wochenende", budget:"40–120€/m²", emoji:"🟤", img:"https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&h=220&fit=crop&q=80", amazon:"zellige fliesen handgemacht 10x10 weiß" },
-  { cat:"Küche", title:"Dunkle Fronten: Navy & Grün", desc:"Navy-Blau, Flaschengrün, Anthrazit statt ewig Weiß. Fronten lackieren: P120 schleifen → Haftgrund → 3× Seidenmatt. RAL 5011 oder RAL 6009.", how:"DIY – 2–3 Tage", budget:"100–400€", emoji:"🍳", img:"https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&h=220&fit=crop&q=80", amazon:"küchen fronten lackieren haftgrund seidenmatt" },
-  { cat:"Küche", title:"Offene Holzregale statt Hängeschränke", desc:"Oberschränke raus, Massivholzbrett + Wandträger rein. Eiche oder Nussbaum, 4cm stark, geölt. Raum wirkt sofort größer und wärmer.", how:"DIY – halber Tag", budget:"100–300€", emoji:"📚", img:"https://images.unsplash.com/photo-1556909211-36987e6e9a65?w=600&h=220&fit=crop&q=80", amazon:"eiche massivholz regal küche wandträger" },
-  { cat:"Küche", title:"Kücheninsel selbst gebaut", desc:"IKEA KALLAX oder VADHOLMA als Basis, Massivholzplatte drauf. Barhocker dazu = Treffpunkt der Familie. Für 300–600€ machbar.", how:"DIY – Wochenende", budget:"300–800€", emoji:"🏝️", img:"https://images.unsplash.com/photo-1565538810643-b5bdb714032a?w=600&h=220&fit=crop&q=80", amazon:"kücheninsel massivholzplatte eiche ikea" },
-  { cat:"Küche", title:"Zellige Küchenrückwand", desc:"Trend 2025: Handgemachte Fliesen als Rückwand. 7,5×15cm Metro-Format in Weiß, Cremé oder Salbeigrün. Direkt über alte Fliesen möglich.", how:"DIY – 1 Tag", budget:"50–150€", emoji:"⬜", img:"https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&h=220&fit=crop&q=80", amazon:"metro fliesen küche rückwand weiß zellige" },
-  { cat:"Wohnzimmer", title:"Akzentwand Dunkelgrün", desc:"Nur EINE Wand in Flaschengrün (RAL 6009) oder Waldgrün. Lammfellrolle, 2 Schichten, Tesa Precision abkleben. Größte Wirkung für 30–60€.", how:"DIY – 1 Tag", budget:"30–80€", emoji:"🌿", img:"https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&h=220&fit=crop&q=80", amazon:"wandfarbe dunkelgrün matt alpina schöner wohnen" },
-  { cat:"Wohnzimmer", title:"TV-Wand Fluted Panel", desc:"Gerillte MDF-Paneele hinter TV kleben oder schrauben. Vor Montage ölen/lackieren! LED-Strip 2700K dahinter = Magazin-Look ohne Renovierung.", how:"DIY – halber Tag", budget:"80–250€", emoji:"📺", img:"https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&h=220&fit=crop&q=80", amazon:"wandpaneele mdf fluted panel holzoptik" },
-  { cat:"Wohnzimmer", title:"Indirektes Cove-Licht", desc:"Holzkastenrahmen 15cm breit am Deckenrand, LED-Strip 2700K dahinter. Licht strahlt zur Decke. Warmes Hotelzimmer-Feeling für ~200€.", how:"DIY – Wochenende", budget:"150–350€", emoji:"✨", img:"https://images.unsplash.com/photo-1600210492493-0946911123ea?w=600&h=220&fit=crop&q=80", amazon:"led strip 2700k cove licht kastendecke" },
-  { cat:"Wohnzimmer", title:"Warme Erdetöne & Rattan", desc:"Terrakotta, Ocker, Sandstein. Rattan-Sessel, Jute-Teppich, Keramik-Vasen. Sofort umsetzbar ohne Handwerker – komplette Raumtransformation.", how:"Sofort umsetzbar", budget:"200–600€", emoji:"🍂", img:"https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&h=220&fit=crop&q=80", amazon:"terrakotta wandfarbe rattan sessel jute teppich" },
-  { cat:"Schlafzimmer", title:"Bouclé Kopfteil DIY", desc:"MDF-Platte (OBI schneidet auf Maß) + 5cm Schaumstoff RG35 + Bouclé-Stoff tackern. Ergebnis = Hotel-Schlafzimmer. Wand dahinter in Terrakotta.", how:"DIY – 4 Stunden", budget:"80–200€", emoji:"🛏️", img:"https://images.unsplash.com/photo-1617325247661-675ab4b64ae2?w=600&h=220&fit=crop&q=80", amazon:"bouclé stoff polsterstoff meterware creme" },
-  { cat:"Schlafzimmer", title:"Dunkle Decke Nachtblau", desc:"Nur die Decke in Nachtblau oder Dunkelgrün streichen. Wände weiß lassen. Erzeugt Geborgenheit wie ein Zelt. 2200K LED als Wandleuchten dazu.", how:"DIY – 3 Stunden", budget:"25–60€", emoji:"🌙", img:"https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600&h=220&fit=crop&q=80", amazon:"wandfarbe nachtblau dunkelblau matt decke" },
-  { cat:"Boden", title:"SPC-Vinyl über Fliesen", desc:"100% wasserfest, Klicksystem direkt über alte Fliesen. Kein Stemmen, kein Kleber. Eiche-Optik oder Betongrau. Fertig in einem Tag.", how:"DIY – 1 Tag", budget:"15–35€/m²", emoji:"🪵", img:"https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&h=220&fit=crop&q=80", amazon:"spc vinyl boden klick über fliesen wasserfest" },
-  { cat:"Boden", title:"Fischgrät-Parkett verlegen", desc:"Breite Dielen in Fischgrät-Muster = eleganteste Verlegeart. Schwimmend oder verklebt. Eiche geölt oder gebürstet. Wertsteigernd.", how:"Mittel – Wochenende", budget:"40–80€/m²", emoji:"⬛", img:"https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&h=220&fit=crop&q=80", amazon:"fertigparkett eiche fischgrät verlegen" },
-  { cat:"Terrasse", title:"WPC-Terrasse selbst gebaut", desc:"WPC-Dielen auf Unterkonstruktion – wartungsfrei, splitterfrei, vergraut nicht. Stelzlager für höhenausgleich. Unsichtbare Clip-Befestigung.", how:"Mittel – Wochenende", budget:"35–65€/m²", emoji:"🌴", img:"https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=600&h=220&fit=crop&q=80", amazon:"wpc dielen terrasse clip unsichtbar" },
-  { cat:"Terrasse", title:"Outdoor-Lounge Paletten", desc:"EPAL-gestempelte Paletten schleifen, ölen, stapeln. Outdoor-Kissen in Sunbrella-Qualität. Solar-Lichterketten 2200K. Für unter 300€ eine komplette Lounge.", how:"DIY – Wochenende", budget:"150–400€", emoji:"☀️", img:"https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&h=220&fit=crop&q=80", amazon:"outdoor kissen sunbrella solar lichterkette" },
+  // ── BAD ──────────────────────────────────────────────────────────────────────
+  { cat:"Bad", title:"Wellness Walk-In Dusche", desc:"Bodengleiche Dusche mit Regendusche und 8mm ESG-Glasabtrennung. Der größte Bad-Trend. Gefälleestrich, Dichtschlämme 2-lagig, Schlüter KERDI als Abdichtung. Kein Stemmen wenn Gefälleestrich neu aufgebaut wird.", how:"Installateur + DIY-Anteil", budget:"1.500–5.000€", emoji:"🚿", img:"https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=600&h=220&fit=crop&q=80", amazon:"walk-in dusche komplett set glaswand" },
+  { cat:"Bad", title:"Freistehende Badewanne", desc:"Ein Statement-Stück das jeden Raum verwandelt. Acryl oder Gusseisen, Boden-Armatur separat daneben. Wirkt wie ein 5-Sterne-Hotel. Wartungsfrei, zeitloser Look.", how:"Installateur für Anschluss", budget:"800–3.000€", emoji:"🛁", img:"https://images.unsplash.com/photo-1507652313519-d4e9174996dd?w=600&h=220&fit=crop&q=80", amazon:"freistehende badewanne acryl oval weiß" },
+  { cat:"Bad", title:"Mikrozement fugenlos", desc:"Beton-Look ohne eine einzige Fuge – direkt über alte Fliesen möglich. 3 Lagen auftragen, jede schleifen, dann 2× PU-Versiegelung. Antibakteriell, pflegeleicht, zeitlos. Kostet aber Zeit und Übung.", how:"DIY mit Vorbereitung", budget:"60–120€/m²", emoji:"🏛️", img:"https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=600&h=220&fit=crop&q=80", amazon:"mikrozement set komplett wand boden" },
+  { cat:"Bad", title:"Mattschwarz Armaturen", desc:"Kompletter Stil-Wandel für unter 500€. Armatur tauschen = DIY in 2h: Wasser ab, Siphon lösen, neue Armatur anschließen. Dazu LED-Spiegel IP44 und Mattschwarz-Accessoires.", how:"DIY – 2–4 Stunden", budget:"200–600€", emoji:"🖤", img:"https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=600&h=220&fit=crop&q=80", amazon:"grohe armatur mattschwarz bad" },
+  { cat:"Bad", title:"Zellige Wandfliesen", desc:"Handgemachte marokkanische Fliesen 10×10cm – jede einzigartig, Charme durch Imperfektionen. Direkt über alte Fliesen mit Spezialkleber. Wand oder Dusche als Akzent.", how:"DIY – Wochenende", budget:"40–120€/m²", emoji:"🟤", img:"https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&h=220&fit=crop&q=80", amazon:"zellige fliesen handgemacht marokkanisch" },
+  { cat:"Bad", title:"Großformat-Fliesen 120×60cm", desc:"Weniger Fugen = mehr Luxus. 120×60cm Feinsteinzeug lässt Räume größer wirken. Doppelklebung Pflicht! Nivelliersystem verwenden. Anthrazit, Beton oder Marmor-Optik.", how:"Fliesenleger empfohlen", budget:"35–70€/m²", emoji:"⬛", img:"https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=600&h=220&fit=crop&q=80", amazon:"feinsteinzeug fliesen 120x60 anthrazit" },
+  { cat:"Bad", title:"Schwimmender Waschtisch", desc:"Wandhängender Waschtisch aus Massivholz oder MDF lackiert schafft Spa-Atmosphäre und macht den Boden optisch größer. Vorwand aus Rigips nötig wenn kein Hohlraum vorhanden.", how:"Installateur + DIY", budget:"400–1.200€", emoji:"🪵", img:"https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=600&h=220&fit=crop&q=80", amazon:"waschtisch holz wandmontage schwebend" },
+  { cat:"Bad", title:"LED-Spiegel mit Hinterbeleuchtung", desc:"Schimmendes Licht hinter dem Spiegel = Luxus-Look. IP44, dimmbar, oft mit Beschlagschutz. Einfachste Installation per Stecker. Sofortiger Wow-Effekt für unter 150€.", how:"DIY – 30 Minuten", budget:"80–400€", emoji:"💡", img:"https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=600&h=220&fit=crop&q=80", amazon:"led spiegel bad hinterbeleuchtet ip44 dimmbar" },
+
+  // ── KÜCHE ─────────────────────────────────────────────────────────────────────
+  { cat:"Küche", title:"Dunkle Fronten Navy & Grün", desc:"Navy-Blau, Flaschengrün, Anthrazit – weg von ewig Weiß. Fronten lackieren: P120 schleifen → Haftgrund (Zinsser BIN) → 3× Seidenmatt-Lack. Oder Klebefolie für Mietwohnungen.", how:"DIY – 2–3 Tage", budget:"100–400€", emoji:"🍳", img:"https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&h=220&fit=crop&q=80", amazon:"küchen fronten lackieren seidenmatt set" },
+  { cat:"Küche", title:"Offene Holzregale", desc:"Hängeschränke raus, schwebende Massivholzbretter rein. Eiche oder Nussbaum, 4cm stark, geölt. Raum wirkt sofort größer und persönlicher. OBI schneidet auf Maß.", how:"DIY – halber Tag", budget:"100–300€", emoji:"📚", img:"https://images.unsplash.com/photo-1556909211-36987e6e9a65?w=600&h=220&fit=crop&q=80", amazon:"eiche massivholz regalbrett küche geölt" },
+  { cat:"Küche", title:"Kücheninsel aus IKEA", desc:"IKEA KALLAX oder VADHOLMA als Basis, dazu eine dicke Massivholzplatte – fertig ist die Insel. Barhocker dazu = Familientreffpunkt. Unter 600€ umsetzbar.", how:"DIY – Wochenende", budget:"300–700€", emoji:"🏝️", img:"https://images.unsplash.com/photo-1565538810643-b5bdb714032a?w=600&h=220&fit=crop&q=80", amazon:"kücheninsel massivholzplatte eiche" },
+  { cat:"Küche", title:"Zellige Küchenrückwand", desc:"Handgemachte Fliesen als Rückwand – 7,5×15cm Metro in Weiß, Cremé oder Salbeigrün. Direkt über alte Fliesen mit Spezialkleber. Kombiniert mit dunklen Fronten = Top-Ergebnis.", how:"DIY – 1 Tag", budget:"50–150€", emoji:"⬜", img:"https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&h=220&fit=crop&q=80", amazon:"metro fliesen küche zellige handgemacht" },
+  { cat:"Küche", title:"Messing & Gold Akzente", desc:"Griffe, Armaturen, Lampen in gebürstetem Messing verwandeln jede Küche. Einfachster Upgrade: 20er-Pack Bügel-Griffe 128mm tauschen – 30 Minuten, großer Effekt.", how:"DIY – 30 Minuten", budget:"40–150€", emoji:"✨", img:"https://images.unsplash.com/photo-1565538810643-b5bdb714032a?w=600&h=220&fit=crop&q=80", amazon:"küchen griffe messing gebürstet 128mm set" },
+  { cat:"Küche", title:"Butcher Block Arbeitsplatte", desc:"Massivholz-Arbeitsplatte (Buche, Eiche, Nussbaum) als Kontrastpunkt zu dunklen Fronten. Jährlich ölen mit Osmo Hartwachsöl. Schnittkanten sofort abdichten!", how:"DIY bei Tausch", budget:"80–300€", emoji:"🪵", img:"https://images.unsplash.com/photo-1556909211-36987e6e9a65?w=600&h=220&fit=crop&q=80", amazon:"holzarbeitsplatte küche massiv buche eiche" },
+
+  // ── WOHNZIMMER ────────────────────────────────────────────────────────────────
+  { cat:"Wohnzimmer", title:"Akzentwand Dunkelgrün", desc:"Eine Wand in Flaschengrün (RAL 6009). Lammfellrolle, 2 Schichten, Tesa Precision. Größte Wirkung für 30–60€. Rest des Raumes weiß lassen.", how:"DIY – 1 Tag", budget:"30–80€", emoji:"🌿", img:"https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&h=220&fit=crop&q=80", amazon:"wandfarbe dunkelgrün matt wohnzimmer" },
+  { cat:"Wohnzimmer", title:"TV-Wand Fluted Panel", desc:"Gerillte MDF-Latten hinter dem TV – Statement-Wand für unter 200€. Vor Montage ölen oder lackieren. LED-Strip 2700K dahinter = Magazin-Look sofort.", how:"DIY – halber Tag", budget:"80–250€", emoji:"📺", img:"https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&h=220&fit=crop&q=80", amazon:"wandpaneele mdf fluted panel holz wohnzimmer" },
+  { cat:"Wohnzimmer", title:"Cove-Licht Deckenrand", desc:"Holzkastenrahmen 15cm am Deckenrand, LED-Strip 2700K dahinter. Licht strahlt zur Decke = warmes indirektes Licht wie im Hotel. Kein Elektriker nötig.", how:"DIY – Wochenende", budget:"150–350€", emoji:"✨", img:"https://images.unsplash.com/photo-1600210492493-0946911123ea?w=600&h=220&fit=crop&q=80", amazon:"led strip 2700k cove licht warmweiß" },
+  { cat:"Wohnzimmer", title:"Erdetöne & Rattan 2026", desc:"Terrakotta, Ocker, Sandstein dominieren 2026 weiter. Rattan-Sessel, Jute-Teppich, handgemachte Keramik. Sofort umsetzbar ohne Handwerker.", how:"Sofort umsetzbar", budget:"200–600€", emoji:"🍂", img:"https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&h=220&fit=crop&q=80", amazon:"rattan sessel jute teppich terrakotta deko" },
+  { cat:"Wohnzimmer", title:"Limewash Wand", desc:"Kalkputz-Optik in der Wand – lebendige Textur, jede Wand einzigartig. Über normaler Farbe möglich. Trendfarben: Warm Greige, Staubiges Rosa, Tiefes Blaugrau.", how:"DIY – 1 Tag", budget:"40–100€", emoji:"🏺", img:"https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&h=220&fit=crop&q=80", amazon:"limewash farbe kalkputz optik wand" },
+  { cat:"Wohnzimmer", title:"Einbauregal als Statement", desc:"Regal von Wand zu Wand, Boden bis Decke, mit LED-Cove-Beleuchtung dahinter. MDF-Aufbau, weiß lackiert oder Eiche furniert. Enormer Mehrwert und Look.", how:"Mittel – 2 Wochenenden", budget:"300–1.500€", emoji:"📖", img:"https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&h=220&fit=crop&q=80", amazon:"einbauregal wohnzimmer mdf wand zu wand" },
+
+  // ── SCHLAFZIMMER ──────────────────────────────────────────────────────────────
+  { cat:"Schlafzimmer", title:"Bouclé Kopfteil DIY", desc:"MDF-Platte zugeschnitten (OBI auf Maß) + 5cm Schaumstoff RG35 + Bouclé-Stoff tackern. Ergebnis = 5-Sterne-Hotel-Feeling. Wand dahinter in Terrakotta oder Salbei.", how:"DIY – 4 Stunden", budget:"80–200€", emoji:"🛏️", img:"https://images.unsplash.com/photo-1617325247661-675ab4b64ae2?w=600&h=220&fit=crop&q=80", amazon:"bouclé stoff creme polsterstoff meterware" },
+  { cat:"Schlafzimmer", title:"Dunkle Decke Nachtblau", desc:"Nur die Decke in Nachtblau (Farrow & Ball Hague Blue) oder Dunkelgrün. Wände weiß lassen. Erzeugt Geborgenheitsgefühl. 2200K Wandleuchten dazu.", how:"DIY – 3 Stunden", budget:"25–60€", emoji:"🌙", img:"https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600&h=220&fit=crop&q=80", amazon:"wandfarbe nachtblau dunkelblau matt schlafzimmer" },
+  { cat:"Schlafzimmer", title:"Wandleuchten statt Nachttisch", desc:"Wandleuchten mit Gelenkarm beidseitig neben dem Bett ersetzen Nachttischlampen. Schlanker Look, mehr Platz. Stecker-Variante = kein Elektriker!", how:"DIY – 1 Stunde", budget:"60–200€", emoji:"💡", img:"https://images.unsplash.com/photo-1617325247661-675ab4b64ae2?w=600&h=220&fit=crop&q=80", amazon:"wandleuchte gelenkarm schlafzimmer messing" },
+  { cat:"Schlafzimmer", title:"Akzentwand Japandi", desc:"Helles Greige oder Walnuss-Braun mit einfachen Holzlatten als vertikale Struktur. Minimalistisch, ruhig, zeitlos. Kombination aus japanisch und skandinavisch.", how:"DIY – 1 Tag", budget:"50–150€", emoji:"🎋", img:"https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600&h=220&fit=crop&q=80", amazon:"wandleisten holz vertikal schlafzimmer japandi" },
+
+  // ── BODEN ─────────────────────────────────────────────────────────────────────
+  { cat:"Boden", title:"SPC-Vinyl über Fliesen", desc:"100% wasserfest, Klicksystem direkt über alte Fliesen. Kein Stemmen, kein Kleber, kein Handwerker. Eiche-Optik oder Betongrau. Fertig in einem Tag.", how:"DIY – 1 Tag", budget:"15–35€/m²", emoji:"🪵", img:"https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&h=220&fit=crop&q=80", amazon:"spc vinyl klick wasserfest über fliesen" },
+  { cat:"Boden", title:"Fischgrät-Parkett", desc:"Dielen in Fischgrät-Muster = eleganteste Verlegeart überhaupt. Eiche geölt oder gebürstet, schwimmend verlegt. Wertsteigernd, zeitlos schön.", how:"Mittel – Wochenende", budget:"40–80€/m²", emoji:"⬛", img:"https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&h=220&fit=crop&q=80", amazon:"fertigparkett eiche fischgrät geölt" },
+  { cat:"Boden", title:"Betonoptik Epoxidharz", desc:"Fugenloser, glänzender Betonboden direkt über altem Boden. Sehr strapazierfähig, ideal für Küche und Flur. Vorbereitung ist 80% der Arbeit: Untergrund muss absolut sauber sein.", how:"Fortgeschritten – Wochenende", budget:"20–50€/m²", emoji:"🔘", img:"https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&h=220&fit=crop&q=80", amazon:"epoxidharz boden betonoptik set" },
+
+  // ── TERRASSE ──────────────────────────────────────────────────────────────────
+  { cat:"Terrasse", title:"WPC-Terrasse selbst bauen", desc:"WPC-Dielen auf Stelzlagern – wartungsfrei, splitterfrei, vergraut nicht. Unsichtbare Clip-Befestigung, kein Bohren. Über Beton oder Platten direkt möglich.", how:"Mittel – Wochenende", budget:"35–65€/m²", emoji:"🌴", img:"https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=600&h=220&fit=crop&q=80", amazon:"wpc dielen terrasse stelzlager clip" },
+  { cat:"Terrasse", title:"Outdoor-Lounge Design", desc:"Modulare Lounge-Gruppe aus Polyrattan oder massivem Teak, Sunbrella-Kissen (UV-beständig), Solar-Lichterketten 2200K. Outdoor-Teppich als Basis. Fertig in 2 Stunden.", how:"Sofort umsetzbar", budget:"300–1.200€", emoji:"☀️", img:"https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&h=220&fit=crop&q=80", amazon:"outdoor lounge set polyrattan sunbrella kissen" },
+  { cat:"Terrasse", title:"Pergola Douglasie", desc:"Freistehende oder wandmontierte Pergola aus Douglasie – wetterfestes Holz, natürlich haltbar ohne Imprägnierung. Mit Rankpflanzen oder Segel-Sonnenschutz kombinieren.", how:"Mittel – Wochenende", budget:"400–1.500€", emoji:"🌿", img:"https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=600&h=220&fit=crop&q=80", amazon:"pergola bausatz douglasie holz garten" },
+  { cat:"Terrasse", title:"Außenküche mit Grill", desc:"Gemauerte oder modulare Außenküche mit eingebautem Gasgrill, Arbeitsfläche aus Feinsteinzeug, Unterschrank. Das Upgrade für gesellige Abende. Wert des Hauses steigt.", how:"Fortgeschritten", budget:"800–4.000€", emoji:"🔥", img:"https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&h=220&fit=crop&q=80", amazon:"aussenküche grill eingebaut outdoor küche set" },
+  { cat:"Terrasse", title:"Mediterraner Terrassenraum", desc:"Olivenbäume in Terrakotta-Töpfen, Lavendel als Sichtschutz, Sandstein-Fliesen, Rankrosen an der Wand. Ohne Handwerker umsetzbar – reine Gestaltung.", how:"Sofort umsetzbar", budget:"200–600€", emoji:"🫒", img:"https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=600&h=220&fit=crop&q=80", amazon:"olivenbaum terrasse terrakotta topf groß" },
 ];
 
 const KATEGORIEN = ["Alle", "Bad", "Küche", "Wohnzimmer", "Schlafzimmer", "Boden", "Terrasse"];
@@ -2041,7 +2204,7 @@ function IdeenTab() {
     <div style={{ overflowY:"auto", height:"100%" }}>
       {/* Filter */}
       <div style={{ padding:"14px 16px 10px", position:"sticky", top:0, background:C.bg, zIndex:10, borderBottom:`1px solid ${C.border}` }}>
-        <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:20, marginBottom:10 }}>Ideen & Trends 2025</h2>
+        <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:20, marginBottom:10 }}>Ideen & Trends 2026</h2>
         <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:2 }}>
           {KATEGORIEN.map(k => (
             <button key={k} onClick={() => setKat(k)} style={{ padding:"6px 13px", borderRadius:20, border:`1px solid ${kat===k?C.accent:C.border}`, background:kat===k?C.accent:"white", color:kat===k?"white":C.muted, fontSize:12, cursor:"pointer", fontWeight:kat===k?600:400, fontFamily:"'DM Sans',sans-serif", flexShrink:0 }}>{k}</button>
