@@ -708,8 +708,31 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers, plan, canGenerate, freeUs
 
   function handleSaveToPlaner() {
     if (!nachherUrl) return;
-    const m = { id:Date.now(), date:new Date().toLocaleDateString("de-DE"), time:new Date().toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"}), titel: wunsch ? wunsch.slice(0,40) : "Makeover", vorherUrl, imgUrl:nachherUrl, materials, wunsch };
+    const m = {
+      id: Date.now(),
+      date: new Date().toLocaleDateString("de-DE"),
+      time: new Date().toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"}),
+      titel: wunsch ? wunsch.slice(0,40) : (makoverAnalyse?.stil || "Makeover"),
+      vorherUrl, imgUrl: nachherUrl,
+      materials: makoverAnalyse
+        ? buildMaterialsFromAnalyse(makoverAnalyse)  // KI-erkannte Materialien bevorzugen
+        : materials,
+      wunsch,
+      analyse: makoverAnalyse || null,  // komplette Analyse speichern
+    };
     onSaveToPlaner(m); setSaved(true);
+  }
+
+  // KI-Analyse in Materialien-Text umwandeln für Einkaufsliste
+  function buildMaterialsFromAnalyse(analyse) {
+    if (!analyse?.materialien?.length) return materials;
+    return analyse.materialien.map(mat => {
+      const amazonLink = mat.amazon
+        ? ` [Amazon →](https://www.amazon.de/s?k=${encodeURIComponent(mat.amazon)}&tag=renopilot-21)`
+        : "";
+      const preis = mat.preis ? ` · Ca. ${mat.preis}` : "";
+      return `🪨 **${mat.material}** – ${mat.bereich}${mat.farbe ? `, ${mat.farbe}` : ""}${preis}.${amazonLink}`;
+    }).join("\n");
   }
 
   function neuesMakeover() {
