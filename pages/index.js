@@ -529,7 +529,11 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers, plan, canGenerate, freeUs
   const [viewingHistory, setViewingHistory] = useState(null);
   const [isObjReplace, setIsObjReplace] = useState(false);
   const [nachherBase64, setNachherBase64] = useState(null); // gespeicherte base64 für Refinement
-  const [refining, setRefining] = useState(false);
+  const [laenge, setLaenge] = useState("");
+  const [breite, setBreite] = useState("");
+  const [hoehe, setHoehe] = useState("");
+  const [makoverAnalyse, setMakoverAnalyse] = useState(null);
+  const [makoverAnalyseLoading, setMakoverAnalyseLoading] = useState(false);
   const [refinementInput, setRefinementInput] = useState("");
   const [refinementHistory, setRefinementHistory] = useState([]);
 
@@ -557,7 +561,13 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers, plan, canGenerate, freeUs
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageBase64: base64, style: stil, chatContext: instruction, plan: plan||"free" }),
+        body: JSON.stringify({
+          imageBase64: base64,
+          style: stil,
+          chatContext: instruction,
+          plan: plan||"free",
+          dimensions: (laenge && breite) ? { laenge, breite, hoehe: hoehe||"2.4" } : null,
+        }),
       });
       if (!res.ok) {
         const txt = await res.text();
@@ -593,7 +603,13 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers, plan, canGenerate, freeUs
         const res = await fetch("/api/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ imageBase64: base64, style: stil, chatContext: wunsch||null, plan: plan||"free" }),
+          body: JSON.stringify({
+            imageBase64: base64,
+            style: stil,
+            chatContext: wunsch||null,
+            plan: plan||"free",
+            dimensions: (laenge && breite) ? { laenge, breite, hoehe: hoehe||"2.4" } : null,
+          }),
         });
         if (!res.ok) {
           const txt = await res.text();
@@ -610,6 +626,18 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers, plan, canGenerate, freeUs
         if (onGenerated) onGenerated();
         // Base64 direkt vom Server (kein CORS-Problem)
         setNachherBase64(data.imageBase64 || null);
+        // Automatisch analysieren was generiert wurde
+        if (data.imageBase64) {
+          setMakoverAnalyse(null);
+          setMakoverAnalyseLoading(true);
+          fetch("/api/analyse", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ imageBase64: data.imageBase64, mimeType: "image/jpeg" }),
+          }).then(r => r.json()).then(d => {
+            if (d.analysis) setMakoverAnalyse(d.analysis);
+          }).catch(() => {}).finally(() => setMakoverAnalyseLoading(false));
+        }
       } catch (err) {
         clearInterval(timer);
         setError(err.message);
@@ -692,8 +720,51 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers, plan, canGenerate, freeUs
           </div>
         ) : (
           <div>
-            {/* Beschreibung – immer sichtbar */}
+            {/* Maße */}
             <div style={{ marginBottom:14 }}>
+              <p style={{ fontSize:13, fontWeight:700, color:C.text, marginBottom:8 }}>📐 Raummaße <span style={{ fontSize:11, fontWeight:400, color:C.muted }}>(optional, verbessert Ergebnis)</span></p>
+              <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+                <div style={{ flex:1 }}>
+                  <p style={{ fontSize:11, color:C.muted, marginBottom:4 }}>Länge</p>
+                  <div style={{ display:"flex", alignItems:"center", gap:4 }}>
+                    <input
+                      value={laenge} onChange={e => setLaenge(e.target.value.replace(/[^0-9.,]/g,""))}
+                      placeholder="3,5" type="text" inputMode="decimal"
+                      style={{ width:"100%", padding:"8px 10px", borderRadius:9, border:`1.5px solid ${laenge?C.accent:C.border}`, fontSize:14, fontFamily:"'DM Sans',sans-serif", background:C.bg, textAlign:"center" }}
+                    />
+                    <span style={{ fontSize:12, color:C.muted, flexShrink:0 }}>m</span>
+                  </div>
+                </div>
+                <span style={{ fontSize:18, color:C.muted, marginTop:16 }}>×</span>
+                <div style={{ flex:1 }}>
+                  <p style={{ fontSize:11, color:C.muted, marginBottom:4 }}>Breite</p>
+                  <div style={{ display:"flex", alignItems:"center", gap:4 }}>
+                    <input
+                      value={breite} onChange={e => setBreite(e.target.value.replace(/[^0-9.,]/g,""))}
+                      placeholder="2,2" type="text" inputMode="decimal"
+                      style={{ width:"100%", padding:"8px 10px", borderRadius:9, border:`1.5px solid ${breite?C.accent:C.border}`, fontSize:14, fontFamily:"'DM Sans',sans-serif", background:C.bg, textAlign:"center" }}
+                    />
+                    <span style={{ fontSize:12, color:C.muted, flexShrink:0 }}>m</span>
+                  </div>
+                </div>
+                <div style={{ flex:1 }}>
+                  <p style={{ fontSize:11, color:C.muted, marginBottom:4 }}>Höhe</p>
+                  <div style={{ display:"flex", alignItems:"center", gap:4 }}>
+                    <input
+                      value={hoehe} onChange={e => setHoehe(e.target.value.replace(/[^0-9.,]/g,""))}
+                      placeholder="2,4" type="text" inputMode="decimal"
+                      style={{ width:"100%", padding:"8px 10px", borderRadius:9, border:`1.5px solid ${hoehe?C.accent:C.border}`, fontSize:14, fontFamily:"'DM Sans',sans-serif", background:C.bg, textAlign:"center" }}
+                    />
+                    <span style={{ fontSize:12, color:C.muted, flexShrink:0 }}>m</span>
+                  </div>
+                </div>
+              </div>
+              {laenge && breite && (
+                <p style={{ fontSize:11, color:C.green, marginTop:5, fontWeight:600 }}>
+                  ✓ {(parseFloat(laenge.replace(",",".")) * parseFloat(breite.replace(",","."))).toFixed(1)} m² – wird an KI übergeben
+                </p>
+              )}
+            </div>
               <p style={{ fontSize:13, fontWeight:700, color:C.text, marginBottom:8 }}>✏️ Was soll sich ändern? <span style={{ fontSize:11, fontWeight:400, color:C.muted }}>(optional)</span></p>
               <textarea
                 value={wunsch}
@@ -778,6 +849,64 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers, plan, canGenerate, freeUs
                       <p style={{ fontSize:12, fontWeight:700, color:"#E65100", marginBottom:2 }}>Objekt-Austausch ist KI-schwierig</p>
                       <p style={{ fontSize:11, color:"#7A4100", lineHeight:1.5 }}>KI-Bildgeneratoren können Materialien &amp; Farben gut ändern, aber Möbel/Sanitär exakt ersetzen ist schwieriger. Falls das Ergebnis nicht passt: Stil-Änderungen (Farbe, Fliesen, Licht) funktionieren besser. Mehrmals "Nochmal" drücken kann helfen.</p>
                     </div>
+                  </div>
+                )}
+
+                {/* ── KI-Analyse des generierten Bildes ── */}
+                {makoverAnalyseLoading && (
+                  <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:"14px 16px", marginBottom:10, display:"flex", alignItems:"center", gap:10 }}>
+                    <div style={{ display:"flex", gap:4 }}>
+                      {[0,1,2].map(j => <div key={j} style={{ width:7, height:7, borderRadius:"50%", background:C.accent, animation:`blink 1.2s ease ${j*0.2}s infinite` }} />)}
+                    </div>
+                    <p style={{ fontSize:13, color:C.muted }}>KI analysiert verwendete Materialien…</p>
+                  </div>
+                )}
+
+                {makoverAnalyse && !makoverAnalyseLoading && (
+                  <div className="fu" style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, marginBottom:10, overflow:"hidden" }}>
+                    {/* Header */}
+                    <div style={{ padding:"12px 14px", background:`linear-gradient(135deg, ${C.accent}18, ${C.accentBg})`, borderBottom:`1px solid ${C.border}`, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                      <div>
+                        <p style={{ fontFamily:"'Playfair Display',serif", fontSize:15, fontWeight:700, color:C.text }}>{makoverAnalyse.stil}</p>
+                        <p style={{ fontSize:11, color:C.muted, marginTop:2 }}>{makoverAnalyse.stimmung?.split(".")[0]}.</p>
+                      </div>
+                      {/* Farbpalette */}
+                      <div style={{ display:"flex", gap:4 }}>
+                        {makoverAnalyse.farben?.slice(0,4).map((f,i) => (
+                          <div key={i} style={{ width:18, height:18, borderRadius:4, background:f, border:"1.5px solid rgba(0,0,0,0.1)" }} title={f} />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Materialien */}
+                    <div style={{ padding:"10px 14px 6px" }}>
+                      <p style={{ fontSize:12, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:0.5, marginBottom:8 }}>Erkannte Materialien & Möbel</p>
+                      {makoverAnalyse.materialien?.map((mat, i) => (
+                        <div key={i} style={{ display:"flex", alignItems:"center", gap:8, padding:"7px 0", borderBottom:i<makoverAnalyse.materialien.length-1?`1px solid ${C.border}`:"none" }}>
+                          <span style={{ fontSize:10, background:C.tag, color:C.muted, padding:"2px 7px", borderRadius:20, flexShrink:0, whiteSpace:"nowrap" }}>{mat.bereich}</span>
+                          <div style={{ flex:1, minWidth:0 }}>
+                            <p style={{ fontSize:13, fontWeight:600, color:C.text }}>{mat.material}</p>
+                            {mat.farbe && <p style={{ fontSize:11, color:C.muted }}>{mat.farbe}{mat.preis ? ` · ${mat.preis}` : ""}</p>}
+                          </div>
+                          {mat.amazon && (
+                            <a href={`https://www.amazon.de/s?k=${encodeURIComponent(mat.amazon)}&tag=${AFFILIATE_TAG}`} target="_blank" rel="noopener noreferrer"
+                              style={{ flexShrink:0, background:C.greenBg, color:C.green, borderRadius:20, padding:"4px 10px", fontSize:11, textDecoration:"none", fontWeight:700 }}>
+                              🛒
+                            </a>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Sofort-Upgrades */}
+                    {makoverAnalyse.sofort_upgrades?.length > 0 && (
+                      <div style={{ padding:"10px 14px 12px", borderTop:`1px solid ${C.border}`, background:C.greenBg }}>
+                        <p style={{ fontSize:12, fontWeight:700, color:C.green, marginBottom:6 }}>💡 Günstiger Einstieg</p>
+                        {makoverAnalyse.sofort_upgrades.slice(0,2).map((up,i) => (
+                          <p key={i} style={{ fontSize:12, color:"#1A4731", lineHeight:1.5, marginBottom:i<1?4:0 }}>• {up}</p>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
