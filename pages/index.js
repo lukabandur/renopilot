@@ -472,6 +472,45 @@ function compressImageFile(file) {
   });
 }
 
+// ─── TIPPS BOX ────────────────────────────────────────────────────────────────
+function TippsBox() {
+  const [open, setOpen] = useState(false);
+  const TIPPS = [
+    { icon:"🔄", titel:"Objekte ersetzen", gut:"Keine Badewanne, dafür eine Walk-In Dusche", schlecht:"Dusche", erklaerung:"Sag was weg soll UND was kommen soll. 'Dafür', 'stattdessen', 'anstatt' helfen der KI." },
+    { icon:"🎨", titel:"Farben & Materialien", gut:"Dunkle Anthrazit-Fliesen, Holzboden, weiße Fugen", schlecht:"Andere Farben", erklaerung:"Nenne konkrete Farbnamen: Anthrazit, Navy, Terrakotta, Marmor, Eiche, Mikrozement, Zellige." },
+    { icon:"💡", titel:"Stil beschreiben", gut:"Modernes Spa-Bad, indirektes Licht, mattschwarz Armaturen", schlecht:"Schöner machen", erklaerung:"Stile: Modern, Skandinavisch, Industrial, Japandi, Mediterran, Luxus, Minimalist." },
+    { icon:"📐", titel:"Mehreres kombinieren", gut:"Dunkle Fliesen, keine Badewanne dafür Dusche, schwarze Armaturen", schlecht:"Alles neu", erklaerung:"Mehrere Änderungen mit Komma trennen – die KI arbeitet alle ab." },
+    { icon:"⚠️", titel:"Was KI schwer kann", gut:"Fliesen dunkler, Farbe ändern, Armaturen tauschen", schlecht:"Kompletten Grundriss ändern", erklaerung:"Farben & Materialien klappt sehr gut. Strukturelle Änderungen sind schwieriger – mehrmals versuchen hilft." },
+  ];
+  return (
+    <div style={{ marginTop:8 }}>
+      <button onClick={() => setOpen(o => !o)} style={{ display:"flex", alignItems:"center", gap:6, background:"none", border:"none", cursor:"pointer", padding:0, fontFamily:"'DM Sans',sans-serif" }}>
+        <span style={{ fontSize:12, color:C.accent, fontWeight:600 }}>💡 Tipps für bessere Ergebnisse</span>
+        <span style={{ fontSize:12, color:C.muted, transform:open?"rotate(90deg)":"none", transition:"0.2s", display:"inline-block" }}>›</span>
+      </button>
+      {open && (
+        <div className="fu" style={{ marginTop:10, background:C.accentBg, border:`1px solid ${C.accent}33`, borderRadius:12, padding:"14px", display:"flex", flexDirection:"column", gap:10 }}>
+          <p style={{ fontSize:12, fontWeight:700, color:C.accent }}>So bekommst du die besten KI-Makeovers:</p>
+          {TIPPS.map((t, i) => (
+            <div key={i} style={{ background:"white", borderRadius:10, padding:"11px 13px" }}>
+              <p style={{ fontSize:13, fontWeight:700, color:C.text, marginBottom:6 }}>{t.icon} {t.titel}</p>
+              <div style={{ display:"flex", gap:6, alignItems:"flex-start", marginBottom:5 }}>
+                <span style={{ fontSize:10, background:C.greenBg, color:C.green, padding:"2px 7px", borderRadius:20, fontWeight:700, flexShrink:0, marginTop:1 }}>✓</span>
+                <span style={{ fontSize:12, color:C.text, lineHeight:1.4 }}>"{t.gut}"</span>
+              </div>
+              <div style={{ display:"flex", gap:6, alignItems:"flex-start", marginBottom:6 }}>
+                <span style={{ fontSize:10, background:"#FEF2F2", color:"#B91C1C", padding:"2px 7px", borderRadius:20, fontWeight:700, flexShrink:0, marginTop:1 }}>✗</span>
+                <span style={{ fontSize:12, color:C.muted, lineHeight:1.4 }}>"{t.schlecht}"</span>
+              </div>
+              <p style={{ fontSize:11, color:C.muted, lineHeight:1.5, borderTop:`1px solid ${C.border}`, paddingTop:6 }}>{t.erklaerung}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── MAKEOVER TAB (aus altem Chat – vollständig) ──────────────────────────────
 function MakeoverTab({ onSaveToPlaner, savedMakeovers, plan, canGenerate, freeUsed, onNeedUpgrade, onGenerated }) {
   var fileRef = useRef();
@@ -663,7 +702,9 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers, plan, canGenerate, freeUs
                 rows={3}
                 style={{ width:"100%", border:`1.5px solid ${wunsch?C.accent:C.border}`, borderRadius:12, padding:"10px 13px", fontSize:13, resize:"none", fontFamily:"'DM Sans',sans-serif", background:C.bg, lineHeight:1.6 }}
               />
-              <p style={{ fontSize:11, color:C.muted, marginTop:5 }}>💡 Je konkreter deine Beschreibung, desto besser das Ergebnis</p>
+
+              {/* Tipps ausklappbar */}
+              <TippsBox />
             </div>
 
             {/* Upload */}
@@ -675,26 +716,15 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers, plan, canGenerate, freeUs
 
             {vorherUrl && (
               <>
-                {!canGenerate && (
-                  <div style={{ background:"#FFF8E1", border:"1px solid #FFD54F", borderRadius:12, padding:"12px 14px", marginBottom:10, display:"flex", gap:10, alignItems:"center" }}>
-                    <span style={{ fontSize:20 }}>🔒</span>
-                    <div style={{ flex:1 }}>
-                      <p style={{ fontSize:13, fontWeight:700, color:"#E65100" }}>3 gratis Makeovers aufgebraucht</p>
-                      <p style={{ fontSize:12, color:"#7A4100" }}>Upgrade für weitere Generierungen</p>
-                    </div>
-                    <button onClick={onNeedUpgrade} style={{ padding:"7px 14px", borderRadius:20, background:C.accent, color:"white", border:"none", cursor:"pointer", fontSize:12, fontWeight:700, fontFamily:"'DM Sans',sans-serif", flexShrink:0 }}>
-                      Upgrade →
-                    </button>
-                  </div>
-                )}
+
                 {plan === "pro" && (
                   <div style={{ background:C.greenBg, border:`1px solid ${C.green}33`, borderRadius:10, padding:"6px 12px", marginBottom:8, display:"flex", alignItems:"center", gap:6 }}>
                     <span style={{ fontSize:12 }}>⭐</span>
                     <p style={{ fontSize:12, color:C.green, fontWeight:600 }}>Pro: Flux Pro Modell aktiv – höhere Bildqualität</p>
                   </div>
                 )}
-                <button onClick={generieren} disabled={loading || !canGenerate} style={{ width:"100%", padding:15, marginBottom:12, background:loading?"#DDD":!canGenerate?"#DDD":"linear-gradient(135deg, #C4622D, #A0522D)", color:loading||!canGenerate?"#999":"white", border:"none", borderRadius:50, fontSize:15, fontWeight:700, cursor:loading||!canGenerate?"default":"pointer", fontFamily:"'DM Sans',sans-serif" }}>
-                  {loading ? "KI generiert Bild..." : !canGenerate ? "🔒 Upgrade erforderlich" : "✨ Makeover generieren"}
+                <button onClick={generieren} disabled={loading} style={{ width:"100%", padding:15, marginBottom:12, background:loading?"#DDD":"linear-gradient(135deg, #C4622D, #A0522D)", color:loading?"#999":"white", border:"none", borderRadius:50, fontSize:15, fontWeight:700, cursor:loading?"default":"pointer", fontFamily:"'DM Sans',sans-serif" }}>
+                  {loading ? "KI generiert Bild..." : "✨ Makeover generieren"}
                 </button>
               </>
             )}
@@ -2009,8 +2039,7 @@ export default function Home() {
   }
 
   function canGenerate() {
-    if (subscription) return true;
-    return freeUsed < 3;
+    return true; // Kein Limit – Paywall später via Stripe
   }
 
   const planLabel = subscription?.plan === "pro" ? "Pro ⭐" : subscription?.plan === "basic" ? "Basic" : null;
@@ -2036,7 +2065,7 @@ export default function Home() {
                 Upgrade ✨
               </button>
             )}
-            {!planLabel && <span style={{ fontSize:11, color:C.muted }}>{Math.max(0, 3-freeUsed)} gratis</span>}
+            
           </div>
         </div>
         <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
