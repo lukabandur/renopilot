@@ -765,6 +765,9 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers, plan, canGenerate, freeUs
                 </p>
               )}
             </div>
+
+            {/* Beschreibung */}
+            <div style={{ marginBottom:14 }}>
               <p style={{ fontSize:13, fontWeight:700, color:C.text, marginBottom:8 }}>✏️ Was soll sich ändern? <span style={{ fontSize:11, fontWeight:400, color:C.muted }}>(optional)</span></p>
               <textarea
                 value={wunsch}
@@ -773,7 +776,6 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers, plan, canGenerate, freeUs
                 rows={3}
                 style={{ width:"100%", border:`1.5px solid ${wunsch?C.accent:C.border}`, borderRadius:12, padding:"10px 13px", fontSize:13, resize:"none", fontFamily:"'DM Sans',sans-serif", background:C.bg, lineHeight:1.6 }}
               />
-
               {/* Tipps ausklappbar */}
               <TippsBox />
             </div>
