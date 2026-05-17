@@ -484,7 +484,7 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers, plan, canGenerate, freeUs
   const [error, setError] = useState(null);
   const [progress, setProgress] = useState(0);
   const [wunsch, setWunsch] = useState("");
-  const [chatOpen, setChatOpen] = useState(false);
+  
   const [saved, setSaved] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [viewingHistory, setViewingHistory] = useState(null);
@@ -653,26 +653,17 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers, plan, canGenerate, freeUs
           </div>
         ) : (
           <div>
-            {/* Wunsch */}
-            <div style={{ marginBottom:16 }}>
-              <button onClick={() => setChatOpen(!chatOpen)} style={{ width:"100%", padding:"10px 14px", borderRadius:10, border:`1px solid ${wunsch?C.accent:C.border}`, background:wunsch?"#FFF0E8":C.card, color:wunsch?C.accent:C.muted, fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-                <span>{wunsch ? `Wunsch: ${wunsch.slice(0,30)}${wunsch.length>30?"...":""}` : "Wünsche beschreiben (optional)"}</span>
-                <span>{chatOpen ? "Schließen" : "Bearbeiten"}</span>
-              </button>
-              {chatOpen && (
-                <div style={{ border:`1px solid ${C.border}`, borderTop:"none", borderRadius:"0 0 10px 10px", padding:"10px 12px", background:C.card }}>
-                  <textarea value={wunsch} onChange={e => setWunsch(e.target.value)} placeholder="z.B. Keine Badewanne, dunkle Fliesen, Walk-In Dusche..." rows={3} style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:8, padding:"8px 10px", fontSize:13, resize:"none", fontFamily:"'DM Sans',sans-serif", background:C.bg }} />
-                  <p style={{ fontSize:11, color:C.muted, marginTop:6 }}>Die KI berücksichtigt deine Wünsche beim Generieren</p>
-                </div>
-              )}
-            </div>
-
-            {/* Stil */}
-            <p style={{ fontSize:12, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>Stil</p>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:18 }}>
-              {STILE_MAKEOVER.map(s => (
-                <button key={s.id} onClick={() => setStil(s.id)} style={{ padding:"8px 10px", borderRadius:10, cursor:"pointer", textAlign:"left", border:`2px solid ${stil===s.id?C.accent:C.border}`, background:stil===s.id?C.accentBg:C.card, color:stil===s.id?C.accent:C.text, fontSize:12, fontWeight:stil===s.id?600:400, fontFamily:"'DM Sans',sans-serif" }}>{s.label}</button>
-              ))}
+            {/* Beschreibung – immer sichtbar */}
+            <div style={{ marginBottom:14 }}>
+              <p style={{ fontSize:13, fontWeight:700, color:C.text, marginBottom:8 }}>✏️ Was soll sich ändern? <span style={{ fontSize:11, fontWeight:400, color:C.muted }}>(optional)</span></p>
+              <textarea
+                value={wunsch}
+                onChange={e => setWunsch(e.target.value)}
+                placeholder="z.B. Keine Badewanne dafür eine Dusche, dunkle Fliesen, moderner Stil, Walk-In Dusche einbauen..."
+                rows={3}
+                style={{ width:"100%", border:`1.5px solid ${wunsch?C.accent:C.border}`, borderRadius:12, padding:"10px 13px", fontSize:13, resize:"none", fontFamily:"'DM Sans',sans-serif", background:C.bg, lineHeight:1.6 }}
+              />
+              <p style={{ fontSize:11, color:C.muted, marginTop:5 }}>💡 Je konkreter deine Beschreibung, desto besser das Ergebnis</p>
             </div>
 
             {/* Upload */}
