@@ -1,0 +1,27 @@
+{
+  "name": "Mystorija – KI-Renovierung",
+  "short_name": "Mystorija",
+  "description": "KI-gestützte Renovierungs-App – Makeover, Inspo, Anleitungen",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8F5F0",
+  "theme_color": "#C4622D",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["lifestyle", "utilities"],
+  "lang": "de",
+  "screenshots": []
+}
