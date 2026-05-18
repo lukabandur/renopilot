@@ -2436,7 +2436,19 @@ export default function Home() {
   const [savedMakeovers, setSavedMakeovers] = useState([]);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showPricing, setShowPricing] = useState(false);
-  const [subscription, setSubscription] = useState(null); // null | {plan, sessionId}
+  const [subscription, setSubscription] = useState(null);
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [showInstall, setShowInstall] = useState(false);
+
+  // Service Worker + PWA Install
+  useEffect(() => {
+    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    }
+    const handler = (e) => { e.preventDefault(); setInstallPrompt(e); setShowInstall(true); };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
   const [freeUsed, setFreeUsed] = useState(0);
   const [chatMessages, setChatMessages] = useState([{
     role:"assistant",
@@ -2508,14 +2520,26 @@ export default function Home() {
       {showPricing && <PricingModal onClose={() => setShowPricing(false)} freeUsed={freeUsed} />}
       <Head>
         <title>Mystorija – KI-Renovierung & Inspo</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         <meta name="description" content="Mystorija – KI-Renovierung, Inspiration & DIY-Anleitungen für dein Zuhause" />
+        <meta name="theme-color" content="#C4622D" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Mystorija" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/icon-192.png" />
         <style dangerouslySetInnerHTML={{ __html:globalCSS }} />
       </Head>
       <div style={{ display:"flex", flexDirection:"column", height:"100vh", background:C.bg, maxWidth:600, margin:"0 auto" }}>
         <div style={{ background:C.card, borderBottom:`1px solid ${C.border}`, padding:"13px 18px", display:"flex", alignItems:"center", justifyContent:"space-between", flexShrink:0 }}>
           <span style={{ fontFamily:"'Playfair Display',serif", fontSize:22, fontWeight:700 }}>My<span style={{ color:C.accent }}>storija</span></span>
           <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+            {showInstall && (
+              <button onClick={async () => { if (installPrompt) { installPrompt.prompt(); const r = await installPrompt.userChoice; if (r.outcome==="accepted") setShowInstall(false); }}} style={{ fontSize:11, color:C.green, fontWeight:700, background:C.greenBg, padding:"5px 10px", borderRadius:20, border:`1px solid ${C.green}33`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
+                📲 Installieren
+              </button>
+            )}
             {planLabel ? (
               <span style={{ fontSize:12, color:C.accent, fontWeight:700, background:C.accentBg, padding:"4px 10px", borderRadius:20 }}>{planLabel}</span>
             ) : (
@@ -2559,4 +2583,3 @@ export default function Home() {
     </>
   );
 }
-
