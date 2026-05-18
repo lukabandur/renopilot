@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import Head from "next/head";
 
@@ -115,8 +116,13 @@ function Pill({ children, bg, color }) {
 
 // ─── AFFILIATE ────────────────────────────────────────────────────────────────
 const AFFILIATE_TAG = "mystorija-21";
-function amazonLink(search) {
-  return "https://www.amazon.de/s?k=" + encodeURIComponent(search) + "&tag=" + AFFILIATE_TAG;
+function amazonLink(q, qBau) {
+  const bq = qBau || q;
+  const amzn = `https://www.amazon.de/s?k=${encodeURIComponent(q)}&tag=mystorija-21`;
+  const obi  = `https://www.obi.de/suche/${encodeURIComponent(bq)}/`;
+  const bh   = `https://www.bauhaus.info/search?q=${encodeURIComponent(bq)}`;
+  const hb   = `https://www.hornbach.de/s/${encodeURIComponent(bq)}/`;
+  return `[Amazon](${amzn}) · [OBI](${obi}) · [Bauhaus](${bh}) · [Hornbach](${hb})`;
 }
 
 // ─── ANLEITUNGEN DATEN (16 Stück) ────────────────────────────────────────────
