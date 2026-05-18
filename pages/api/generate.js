@@ -284,31 +284,192 @@ function buildFallbackPrompt(chatContext, style) {
   return `${t}. ${PRESERVE}`;
 }
 
+// ── Affiliate Links ──────────────────────────────────────────────────────────
+// TODO: Echte Tags nach Anmeldung eintragen:
+// Amazon:  tag=mystorija-21   → amazon.de/associates
+// OBI:     awc=XXXX           → awin.com (Merchant: OBI, ID: 13295)
+// Bauhaus: awc=XXXX           → awin.com (Merchant: Bauhaus)
+// Hornbach: awc=XXXX          → belboon.com oder awin.com
+
+const AMZN  = (q) => `https://www.amazon.de/s?k=${encodeURIComponent(q)}&tag=mystorija-21`;
+const OBI   = (q) => `https://www.obi.de/suche/${encodeURIComponent(q)}/`;
+const BH    = (q) => `https://www.bauhaus.info/search?q=${encodeURIComponent(q)}`;
+const HB    = (q) => `https://www.hornbach.de/s/${encodeURIComponent(q)}/`;
+
+function shopLinks(q_amzn, q_bau) {
+  const bq = q_bau || q_amzn;
+  return `[Amazon](${AMZN(q_amzn)}) · [OBI](${OBI(bq)}) · [Bauhaus](${BH(bq)}) · [Hornbach](${HB(bq)})`;
+}
+
 // ── Materialien generieren ────────────────────────────────────────────────────
 function generateMaterials(chatContext, style) {
   const ctx = (chatContext || "").toLowerCase();
-
-  // Dynamisch basierend auf Beschreibung
   const items = [];
 
-  if (ctx.match(/dusche|shower/)) items.push(`🚿 **Walk-In Dusche Komplett-Set** – Duschwanne + Glaswand 8mm ESG + Armatur. Ca. 800–2.500€. [Amazon →](https://www.amazon.de/s?k=walk+in+dusche+set+glaswand&tag=renopilot-21)`);
-  if (ctx.match(/badewanne/)) items.push(`🛁 **Freistehende Badewanne** – Acryl, 170×75cm. Ca. 400–1.500€. [Amazon →](https://www.amazon.de/s?k=freistehende+badewanne+acryl&tag=renopilot-21)`);
-  if (ctx.match(/fliesen|tiles/)) items.push(`🪨 **Großformat-Fliesen 60×120cm** – Feinsteinzeug, Betonoptik oder Marmor. Ca. 25–55€/m². [Amazon →](https://www.amazon.de/s?k=feinsteinzeug+fliesen+60x120+grau&tag=renopilot-21)`);
-  if (ctx.match(/dunkel|anthrazit|dark|schwarz/)) items.push(`⬛ **Mattschwarz Armaturen** – Grohe Essence oder Hansgrohe. Ca. 200–600€. [Amazon →](https://www.amazon.de/s?k=grohe+armatur+mattschwarz&tag=renopilot-21)`);
-  if (ctx.match(/holz|eiche|wood|oak/)) items.push(`🪵 **Waschtisch Eiche wandhängend** – Massiv, 80cm. Ca. 400–900€. [Amazon →](https://www.amazon.de/s?k=waschtisch+eiche+wandmontage&tag=renopilot-21)`);
-  if (ctx.match(/licht|light|led/)) items.push(`💡 **LED-Spiegel IP44** – Badspiegel hinterbeleuchtet. Ca. 80–300€. [Amazon →](https://www.amazon.de/s?k=led+spiegel+bad+ip44&tag=renopilot-21)`);
-  if (ctx.match(/mikrozement|beton/)) items.push(`🏛️ **Mikrozement Set 10m²** – Haftgrund + Mikrozement + Versiegelung. Ca. 200–400€. [Amazon →](https://www.amazon.de/s?k=mikrozement+set+komplett&tag=renopilot-21)`);
+  if (ctx.match(/dusche|shower/))
+    items.push(`🚿 **Walk-In Dusche Set** – Glaswand 8mm ESG + Armatur + Ablaufrinne. Ca. 800–2.500€.
+${shopLinks("walk in dusche set glaswand", "walk-in dusche")}`);
 
-  // Fallback auf Style-Materialien wenn nichts passt
+  if (ctx.match(/badewanne/))
+    items.push(`🛁 **Freistehende Badewanne** – Acryl oval 170×75cm. Ca. 400–1.500€.
+${shopLinks("freistehende badewanne acryl oval", "freistehende badewanne")}`);
+
+  if (ctx.match(/fliesen|tiles/))
+    items.push(`🪨 **Feinsteinzeug 60×120cm** – Betonoptik oder Marmor. Ca. 25–55€/m².
+${shopLinks("feinsteinzeug fliesen 60x120 grau", "feinsteinzeug fliesen 60x120")}`);
+
+  if (ctx.match(/dunkel|anthrazit|dark|schwarz/))
+    items.push(`⬛ **Mattschwarz Armaturen** – Grohe Essence oder Hansgrohe. Ca. 200–600€.
+${shopLinks("grohe armatur mattschwarz bad", "armatur mattschwarz bad")}`);
+
+  if (ctx.match(/holz|eiche|wood|oak/))
+    items.push(`🪵 **Waschtisch Eiche wandhängend** – Massiv, 80cm. Ca. 400–900€.
+${shopLinks("waschtisch eiche wandmontage", "waschtisch holz wandmontage")}`);
+
+  if (ctx.match(/licht|light|led/))
+    items.push(`💡 **LED-Spiegel IP44** – Hinterbeleuchtet, dimmbar. Ca. 80–300€.
+${shopLinks("led spiegel bad ip44 dimmbar", "led spiegel bad")}`);
+
+  if (ctx.match(/mikrozement|beton/))
+    items.push(`🏛️ **Mikrozement Set 10m²** – Haftgrund + Mikrozement + Versiegelung. Ca. 200–400€.
+${shopLinks("mikrozement set komplett boden wand", "mikrozement set")}`);
+
+  if (ctx.match(/farbe|streichen|wandfarbe/))
+    items.push(`🎨 **Wandfarbe Premium matt** – Alpina oder Schöner Wohnen. Ca. 20–60€.
+${shopLinks("wandfarbe matt premium alpina", "wandfarbe innen matt")}`);
+
+  if (ctx.match(/parkett|boden|laminat|vinyl/))
+    items.push(`🪵 **SPC-Vinyl / Laminat** – Klicksystem, wasserfest. Ca. 15–35€/m².
+${shopLinks("spc vinyl klick boden wasserfest", "vinyl laminat klick boden")}`);
+
+  if (ctx.match(/tapete|tapezier/))
+    items.push(`🌿 **Tapete Premium** – Vliestapete, einfach zu verarbeiten. Ca. 20–60€/Rolle.
+${shopLinks("vliestapete premium wohnzimmer", "vliestapete")}`);
+
+  if (ctx.match(/terrasse|wpc|dielen/))
+    items.push(`🌴 **WPC-Dielen Set** – Inkl. Stelzlager und Clips. Ca. 35–65€/m².
+${shopLinks("wpc dielen terrasse stelzlager set", "wpc dielen terrasse")}`);
+
+  if (ctx.match(/grill|bbq|außenküche/))
+    items.push(`🔥 **Gasgrill Outdoor** – 3-Brenner, inkl. Seitenkocher. Ca. 300–1.500€.
+${shopLinks("gasgrill outdoor 3 brenner edelstahl", "gasgrill outdoor")}`);
+
+  if (ctx.match(/pergola/))
+    items.push(`🌿 **Pergola Bausatz** – Douglasie, wetterfest. Ca. 400–1.500€.
+${shopLinks("pergola bausatz douglasie holz", "pergola bausatz holz")}`);
+
+  if (ctx.match(/rigips|trockenbau|wand bauen/))
+    items.push(`🏗️ **Trockenbau Set** – CW/UW-Profile + Rigipsplatten + Schrauben. Ca. 8–15€/m².
+${shopLinks("rigips ständerwerk trockenbau set", "trockenbau set rigips")}`);
+
+  if (ctx.match(/spiegel/))
+    items.push(`🪞 **Rundspiegel / LED-Spiegel** – Messing oder Mattschwarz. Ca. 80–400€.
+${shopLinks("spiegel rund messing bad wohnzimmer", "spiegel rund bad")}`);
+
+  // Fallback Style-Materialien
   if (items.length === 0) {
-    const STYLE_MATERIALS = {
-      "bad-modern": `🪨 **Feinsteinzeug Anthrazit 120×60cm** – Ca. 35–55€/m². [Amazon →](https://www.amazon.de/s?k=feinsteinzeug+anthrazit+120x60&tag=renopilot-21)\n🪵 **Waschtisch Teak wandhängend** – Ca. 600–1.200€. [Amazon →](https://www.amazon.de/s?k=waschtisch+teak+wandmontage&tag=renopilot-21)\n💡 **LED-Spiegel IP44 hinterbeleuchtet** – Ca. 150–400€. [Amazon →](https://www.amazon.de/s?k=led+spiegel+bad+emke&tag=renopilot-21)\n🚿 **Grohe Armatur Mattschwarz** – Ca. 200–450€. [Amazon →](https://www.amazon.de/s?k=grohe+armatur+mattschwarz&tag=renopilot-21)`,
-      "bad-warm": `🟫 **Zellige Metro-Fliesen weiß 7,5×15cm** – Ca. 40–80€/m². [Amazon →](https://www.amazon.de/s?k=zellige+fliesen+weiß&tag=renopilot-21)\n🪵 **Eiche Waschtisch 80cm** – Ca. 400–900€. [Amazon →](https://www.amazon.de/s?k=waschtisch+eiche+massiv&tag=renopilot-21)\n✨ **Hansgrohe Armatur Gold gebürstet** – Ca. 250–500€. [Amazon →](https://www.amazon.de/s?k=hansgrohe+gold+gebürstet&tag=renopilot-21)`,
-      "kueche-navy": `🔵 **Klebefolie Navy Blau** – Ca. 8–15€/m². [Amazon →](https://www.amazon.de/s?k=klebefolie+navy+blau+küche&tag=renopilot-21)\n✨ **Messing Griffe 128mm** – Ca. 50–120€. [Amazon →](https://www.amazon.de/s?k=küchen+griffe+messing&tag=renopilot-21)\n💡 **LED-Strip 2700K Küche** – Ca. 30–60€. [Amazon →](https://www.amazon.de/s?k=led+strip+küche+unterschrank&tag=renopilot-21)`,
-      "wohn-gruen": `🌿 **Wandfarbe Dunkelgrün matt** – Alpina. Ca. 20–45€. [Amazon →](https://www.amazon.de/s?k=wandfarbe+dunkelgrün+matt&tag=renopilot-21)\n🪵 **Fluted Panel MDF** – Ca. 30–60€/m². [Amazon →](https://www.amazon.de/s?k=wandpaneele+mdf+fluted&tag=renopilot-21)\n💡 **LED-Strip 2700K Cove** – Ca. 25–50€. [Amazon →](https://www.amazon.de/s?k=led+strip+2700k+dimmbar&tag=renopilot-21)`,
+    const SM = {
+      "bad-modern": [
+        `🪨 **Feinsteinzeug Anthrazit 120×60cm** – Ca. 35–55€/m².
+${shopLinks("feinsteinzeug anthrazit 120x60", "feinsteinzeug anthrazit")}`,
+        `🚿 **Grohe Armatur Mattschwarz** – Ca. 200–450€.
+${shopLinks("grohe armatur mattschwarz", "armatur mattschwarz")}`,
+        `💡 **LED-Spiegel IP44** – Ca. 150–400€.
+${shopLinks("led spiegel bad ip44 hinterbeleuchtet", "led spiegel bad")}`,
+        `🪵 **Waschtisch Teak wandhängend** – Ca. 600–1.200€.
+${shopLinks("waschtisch teak wandmontage", "waschtisch holz")}`,
+      ],
+      "bad-warm": [
+        `🟫 **Zellige Metro-Fliesen 7,5×15cm** – Ca. 40–80€/m².
+${shopLinks("zellige fliesen metro weiß handgemacht", "metro fliesen bad")}`,
+        `🪵 **Eiche Waschtisch 80cm** – Ca. 400–900€.
+${shopLinks("waschtisch eiche massiv bad", "waschtisch eiche")}`,
+        `✨ **Hansgrohe Armatur Gold** – Ca. 250–500€.
+${shopLinks("hansgrohe armatur gold gebürstet", "armatur gold bad")}`,
+      ],
+      "bad-mikro": [
+        `🏛️ **Mikrozement Set 10m²** – Ca. 200–400€.
+${shopLinks("mikrozement set komplett bad boden", "mikrozement bad")}`,
+        `🖤 **Armatur Mattschwarz** – Ca. 150–400€.
+${shopLinks("armatur mattschwarz bad unterputz", "armatur mattschwarz")}`,
+        `💡 **LED-Spiegel rechteckig** – Ca. 120–350€.
+${shopLinks("led spiegel bad rechteckig dimmbar", "led spiegel bad")}`,
+      ],
+      "kueche-navy": [
+        `🎨 **Haftgrund + Seidenmatt Lack** – Zinsser BIN + Jotun. Ca. 60–120€.
+${shopLinks("zinsser bin haftgrund küche lackieren", "haftgrund küchenfronten")}`,
+        `✨ **Messing Griffe 128mm** – Ca. 50–120€.
+${shopLinks("küchen griffe messing gebürstet 128mm set", "küchen griffe messing")}`,
+        `🪨 **Calacatta Arbeitsplatte** – Quarz oder Feinsteinzeug. Ca. 200–600€.
+${shopLinks("quarz arbeitsplatte calacatta küche", "arbeitsplatte marmor optik")}`,
+        `💡 **LED-Strip 2700K Küche** – Ca. 30–60€.
+${shopLinks("led strip küche unterschrank 2700k", "led strip küche")}`,
+      ],
+      "kueche-grau": [
+        `🎨 **Seidenmatt Lack Grau** – RAL 7035 oder 7016. Ca. 30–80€.
+${shopLinks("küche lack grau seidenmatt ral", "lack küche grau")}`,
+        `🪨 **Quarz Arbeitsplatte weiß** – Ca. 200–500€.
+${shopLinks("quarz arbeitsplatte weiß küche silestone", "quarz arbeitsplatte küche")}`,
+        `💡 **LED-Strip Neutralweiß 4000K** – Ca. 25–55€.
+${shopLinks("led strip 4000k neutralweiß küche", "led strip küche neutralweiß")}`,
+      ],
+      "kueche-gruen": [
+        `🌿 **Seidenmatt Lack Salbeigrün** – RAL 6021. Ca. 30–80€.
+${shopLinks("lack salbeigrün küche seidenmatt ral 6021", "lack küche grün")}`,
+        `✨ **Messing Cup Pulls** – Ca. 40–100€.
+${shopLinks("küchen griffe cup pull messing alt", "küchen griffe messing cup")}`,
+        `🪵 **Live Edge Wandregal Eiche** – Ca. 80–200€.
+${shopLinks("wandregal massivholz eiche live edge küche", "wandregal massivholz küche")}`,
+      ],
+      "wohn-gruen": [
+        `🌿 **Wandfarbe Flaschengrün matt** – Alpina. Ca. 25–60€.
+${shopLinks("wandfarbe flaschengrün dunkelgrün matt alpina", "wandfarbe dunkelgrün")}`,
+        `🪵 **Fluted Panel MDF** – Ca. 30–60€/m².
+${shopLinks("wandpaneele mdf fluted panel holzoptik", "wandpaneele mdf fluted")}`,
+        `💡 **LED-Strip 2700K Cove** – Ca. 25–50€.
+${shopLinks("led strip 2700k warmweiß dimmbar cove", "led strip 2700k")}`,
+        `🛋️ **Bouclé Kissenbezüge** – Ca. 20–60€.
+${shopLinks("bouclé kissenbezug creme wohnzimmer", "kissen bouclé wohnzimmer")}`,
+      ],
+      "wohn-terra": [
+        `🎨 **Wandfarbe Terrakotta** – Alpina Florentiner Erde. Ca. 20–45€.
+${shopLinks("wandfarbe terrakotta alpina florentiner erde", "wandfarbe terrakotta")}`,
+        `🪑 **Rattan Sessel** – Ca. 150–500€.
+${shopLinks("rattan sessel wohnzimmer natur", "rattan sessel")}`,
+        `🟫 **Jute Teppich 200×300** – Ca. 80–250€.
+${shopLinks("jute teppich naturfarben 200x300", "jute teppich groß")}`,
+      ],
+      "schlaf-terra": [
+        `🎨 **Wandfarbe Terrakotta** – Ca. 20–45€.
+${shopLinks("wandfarbe terrakotta schlafzimmer warm", "wandfarbe terrakotta")}`,
+        `🛏️ **Bouclé Stoff für Kopfteil** – Ca. 15–30€/m².
+${shopLinks("bouclé stoff polsterstoff creme meterware", "bouclé stoff meterware")}`,
+        `💡 **Wandleuchten Messing 2x** – Ca. 80–200€.
+${shopLinks("wandleuchte messing schlafzimmer gelenkarm", "wandleuchte messing bett")}`,
+      ],
+      "schlaf-dunkel": [
+        `🎨 **Wandfarbe Nachtblau / Anthrazit** – Ca. 25–60€.
+${shopLinks("wandfarbe nachtblau dunkel matt premium", "wandfarbe dunkelblau")}`,
+        `🪟 **Samtvorhänge bodenlang** – Ca. 80–200€.
+${shopLinks("samtvorhang velvet dunkel bodenlang öse", "samtvorhang dunkel")}`,
+        `💡 **LED-Cove Strip 2200K** – Ca. 30–70€.
+${shopLinks("led strip 2200k extra warmweiß dimmbar", "led strip extra warmweiß")}`,
+      ],
+      "terrasse-wpc": [
+        `🌴 **WPC-Dielen Set 10m²** – Inkl. Clips + Stelzlager. Ca. 35–65€/m².
+${shopLinks("wpc dielen terrasse 10m2 stelzlager clips", "wpc dielen terrasse set")}`,
+        `☀️ **Outdoor Lounge Set** – Polyrattan, Sunbrella-Kissen. Ca. 400–1.200€.
+${shopLinks("outdoor lounge polyrattan set sunbrella terrasse", "outdoor lounge set")}`,
+        `✨ **Solar Lichterketten 2200K** – Ca. 20–60€.
+${shopLinks("solar lichterketten warmweiß außen terrasse", "lichterketten solar außen")}`,
+        `🌿 **Olivenbaum + Terrakotta Topf** – Ca. 80–300€.
+${shopLinks("olivenbaum groß topf terrasse balkon", "olivenbaum terrakotta topf")}`,
+      ],
     };
-    return STYLE_MATERIALS[style] || STYLE_MATERIALS["bad-modern"];
+    return (SM[style] || SM["bad-modern"]).join("
+");
   }
 
-  return items.join("\n");
+  return items.join("
+");
 }
