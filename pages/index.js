@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Head from "next/head";
 
-const SYSTEM = `Du bist RenoPilot, ein freundlicher DIY-Renovierungsexperte für den deutschsprachigen Markt. Deine Nutzer sind AMATEURE. Erkläre alles einfach, konkret, auf Deutsch, motivierend. Immer mit Produktnamen, deutschen Preisen (OBI/Bauhaus/Hornbach/Amazon/IKEA). Warne bei Elektro-Festinstallation, Asbest und tragenden Wänden immer klar.`;
+const SYSTEM = `Du bist Mystorija, ein freundlicher DIY-Renovierungsexperte für den deutschsprachigen Markt. Deine Nutzer sind AMATEURE. Erkläre alles einfach, konkret, auf Deutsch, motivierend. Immer mit Produktnamen, deutschen Preisen (OBI/Bauhaus/Hornbach/Amazon/IKEA). Warne bei Elektro-Festinstallation, Asbest und tragenden Wänden immer klar.`;
 
 async function callAPI(messages) {
   const response = await fetch("/api/chat-proxy", {
@@ -114,7 +114,7 @@ function Pill({ children, bg, color }) {
 }
 
 // ─── AFFILIATE ────────────────────────────────────────────────────────────────
-const AFFILIATE_TAG = "renopilot-21";
+const AFFILIATE_TAG = "mystorija-21";
 function amazonLink(search) {
   return "https://www.amazon.de/s?k=" + encodeURIComponent(search) + "&tag=" + AFFILIATE_TAG;
 }
@@ -407,7 +407,7 @@ function AnleitungenTab() {
   // Fortschritt laden
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("renopilot_anleitungen");
+      const saved = localStorage.getItem("mystorija_anleitungen");
       if (saved) setErledigt(JSON.parse(saved));
     } catch {}
   }, []);
@@ -416,7 +416,7 @@ function AnleitungenTab() {
   const toggleSchritt = (key) => {
     setErledigt(prev => {
       const next = { ...prev, [key]: !prev[key] };
-      try { localStorage.setItem("renopilot_anleitungen", JSON.stringify(next)); } catch {}
+      try { localStorage.setItem("mystorija_anleitungen", JSON.stringify(next)); } catch {}
       return next;
     });
   };
@@ -438,7 +438,7 @@ function AnleitungenTab() {
             {totalErledigt > 0 && (
               <button onClick={() => {
                 setErledigt({});
-                try { localStorage.removeItem("renopilot_anleitungen"); } catch {}
+                try { localStorage.removeItem("mystorija_anleitungen"); } catch {}
               }} style={{ fontSize:11, color:C.muted, background:"none", border:`1px solid ${C.border}`, borderRadius:20, padding:"3px 8px", cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
                 Reset
               </button>
@@ -520,7 +520,7 @@ function AnleitungenTab() {
 function getRenovierungsAntwort(text, hasImage) {
   const t = text.toLowerCase();
   if (hasImage) return "Tolles Foto! 📸\n\nIch sehe deinen Raum. Hier sind meine ersten Einschätzungen:\n\n🔍 **Was ich empfehle:**\n\n1. **Sofort-Upgrade (unter 50€):** Neue Griffe, frisches Silikon, LED-Leuchte – kleine Änderungen, große Wirkung.\n\n2. **Mittel-Projekt (unter 300€):** Wände streichen, Vinyl-Boden über alte Fliesen, Spiegel tauschen.\n\n3. **Komplett-Upgrade (unter 1.000€):** Mikrozement, neue Armaturen, abgehängte Decke mit LED.\n\n💡 Schreib mir was du ändern möchtest – Boden, Wand, Decke oder Deko – und ich gebe dir einen konkreten Plan!";
-  if (t.match(/hallo|hi|hey|guten|servus/)) return "Hey! 👋 Schön dass du da bist!\n\nIch bin dein RenoPilot – dein DIY-Experte für Renovierungen.\n\n**Was kann ich für dich tun?**\n\n🚿 Bad renovieren\n🍳 Küche aufwerten\n🛋️ Wohnzimmer gestalten\n🛏️ Schlafzimmer umgestalten\n🌿 Terrasse/Balkon\n\nLade ein Foto hoch oder schreib mir welchen Raum du renovieren möchtest!";
+  if (t.match(/hallo|hi|hey|guten|servus/)) return "Hey! 👋 Schön dass du da bist!\n\nIch bin dein Mystorija – dein DIY-Experte für Renovierungen.\n\n**Was kann ich für dich tun?**\n\n🚿 Bad renovieren\n🍳 Küche aufwerten\n🛋️ Wohnzimmer gestalten\n🛏️ Schlafzimmer umgestalten\n🌿 Terrasse/Balkon\n\nLade ein Foto hoch oder schreib mir welchen Raum du renovieren möchtest!";
   if (t.match(/silikon|fuge|schimmel/)) return "Silikon erneuern – einer der günstigsten und wirkungsvollsten Upgrades! 🛠️\n\n**Was du brauchst:**\n• Bad-Silikon mit Schimmelschutz: Soudal oder Ottoseal (ca. 8€)\n• Silikon-Entferner (ca. 5€)\n• Cutter-Messer\n• Fugenglätter oder feuchter Finger\n\n**Schritt für Schritt:**\n1. Altes Silikon mit Cutter einschneiden\n2. Silikon-Entferner auftragen, 30 Min warten\n3. Reste abziehen, Fläche entfetten\n4. Abklebeband links und rechts\n5. Silikon gleichmäßig auftragen\n6. Mit feuchtem Finger glattziehen\n7. Band sofort abziehen, 24h trocknen lassen\n\n⏱️ Zeit: 2 Stunden\n💰 Kosten: ca. 15€\n⭐ Schwierigkeit: Anfänger";
   if (t.match(/vinyl|laminat|boden verlegen|klick/)) return "Boden verlegen – machst du selbst! 💪\n\n**SPC-Vinyl (für Bad & Küche):**\n• 100% wasserfest, über alte Fliesen möglich\n• Kosten: 15–25€/m² bei OBI/Bauhaus\n• Kein Kleber nötig – Klicksystem\n\n**Schritt für Schritt:**\n1. Untergrund prüfen – max. 3mm Unebenheit\n2. Schaumunterlage auslegen\n3. Erste Reihe mit 10mm Abstand zur Wand\n4. Reihe für Reihe einrasten\n5. Letzte Reihe zuschneiden\n6. Sockelleisten kleben\n\n⏱️ Zeit: 1 Tag für 20m²\n💰 Kosten: ab 15€/m²\n⭐ Schwierigkeit: Anfänger";
   if (t.match(/bad|badezimmer|dusche|wc|toilette|waschtisch/)) return "Badezimmer renovieren – hier ist mein Plan! 🚿\n\n**Budget 50–150€ (Sofort-Upgrades):**\n• Silikon komplett erneuern (Soudal Bad-Silikon)\n• LED-Spiegel mit IP44: Emke Amazon ab 80€\n• Mattschwarz-Accessoires Set: ~40€\n\n**Budget 150–500€:**\n• Armaturen auf Mattschwarz tauschen\n• SPC-Vinyl über alte Fliesen legen\n• Stauraum über WC montieren\n\n**Budget 500–2.000€:**\n• Mikrozement über Fliesen (kein Stemmen!)\n• Walk-In Dusche einbauen\n• Waschtisch komplett tauschen\n\n⚠️ Wichtig: Immer Bad-Silikon mit Schimmelschutz! IP44 bei Lampen Pflicht!";
@@ -687,7 +687,7 @@ function TippsBox() {
                 <div key={i} style={{ background:"white", borderRadius:10, padding:"11px 13px", cursor:"pointer", border:`1px solid ${C.border}` }}
                   onClick={() => {
                     // Find parent MakeoverTab's setWunsch via a custom event
-                    window.dispatchEvent(new CustomEvent("renopilot_set_wunsch", { detail: v.beispiel }));
+                    window.dispatchEvent(new CustomEvent("mystorija_set_wunsch", { detail: v.beispiel }));
                     setOpen(false);
                   }}>
                   <p style={{ fontSize:13, fontWeight:700, color:C.accent, marginBottom:5 }}>{v.raum}</p>
@@ -728,8 +728,8 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers, plan, canGenerate, freeUs
   // Vorlage aus TippsBox einfügen
   useEffect(() => {
     const handler = (e) => setWunsch(e.detail);
-    window.addEventListener("renopilot_set_wunsch", handler);
-    return () => window.removeEventListener("renopilot_set_wunsch", handler);
+    window.addEventListener("mystorija_set_wunsch", handler);
+    return () => window.removeEventListener("mystorija_set_wunsch", handler);
   }, []);
   const [makoverAnalyse, setMakoverAnalyse] = useState(null);
   const [makoverAnalyseLoading, setMakoverAnalyseLoading] = useState(false);
@@ -868,7 +868,7 @@ function MakeoverTab({ onSaveToPlaner, savedMakeovers, plan, canGenerate, freeUs
     if (!analyse?.materialien?.length) return materials;
     return analyse.materialien.map(mat => {
       const amazonLink = mat.amazon
-        ? ` [Amazon →](https://www.amazon.de/s?k=${encodeURIComponent(mat.amazon)}&tag=renopilot-21)`
+        ? ` [Amazon →](https://www.amazon.de/s?k=${encodeURIComponent(mat.amazon)}&tag=mystorija-21)`
         : "";
       const preis = mat.preis ? ` · Ca. ${mat.preis}` : "";
       return `🪨 **${mat.material}** – ${mat.bereich}${mat.farbe ? `, ${mat.farbe}` : ""}${preis}.${amazonLink}`;
@@ -1303,7 +1303,7 @@ function ChatTab({ messages, setMessages }) {
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <div style={{ width: 28, height: 28, background: C.accent, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>🔨</div>
           <div>
-            <p style={{ fontSize: 14, fontWeight: 700, color: C.text }}>RenoPilot Experte</p>
+            <p style={{ fontSize: 14, fontWeight: 700, color: C.text }}>Mystorija Experte</p>
             <p style={{ fontSize: 11, color: C.green }}>● Online – KI-gestützt</p>
           </div>
         </div>
@@ -1322,7 +1322,7 @@ function ChatTab({ messages, setMessages }) {
               <div style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 12 }}>
                 <div style={{ width: 32, height: 32, background: C.accent, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>🔨</div>
                 <div>
-                  <p style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 4 }}>RenoPilot</p>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 4 }}>Mystorija</p>
                   <p style={{ fontSize: 13, color: C.text, lineHeight: 1.6 }}>
                     Hey! 👋 Ich bin dein persönlicher Renovierungsexperte – frag mich alles über Bad, Küche, Wohnzimmer, Boden, Licht und mehr.<br /><br />
                     Ich gebe dir <strong>konkrete Antworten</strong> mit Produktnamen, Preisen und Schritt-für-Schritt Anleitungen. Oder lade ein 📷 Foto hoch und ich analysiere deinen Raum sofort!
@@ -1347,7 +1347,7 @@ function ChatTab({ messages, setMessages }) {
             {msg.role === "assistant" && (
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 5 }}>
                 <div style={{ width: 24, height: 24, background: C.accent, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, flexShrink: 0 }}>🔨</div>
-                <span style={{ fontSize: 11, color: C.muted, fontWeight: 600 }}>RenoPilot</span>
+                <span style={{ fontSize: 11, color: C.muted, fontWeight: 600 }}>Mystorija</span>
               </div>
             )}
             {/* Show uploaded image above message */}
@@ -1693,13 +1693,13 @@ function PlanerTab({ savedMakeovers }) {
 
   useEffect(() => {
     try {
-      const s = localStorage.getItem("renopilot_planer");
+      const s = localStorage.getItem("mystorija_planer");
       if (s) { const d = JSON.parse(s); setChecked(d.checked||{}); setEigene(d.eigene||[]); }
     } catch {}
   }, []);
 
   const saveLS = (c, e) => {
-    try { localStorage.setItem("renopilot_planer", JSON.stringify({ checked: c||checked, eigene: e||eigene })); } catch {}
+    try { localStorage.setItem("mystorija_planer", JSON.stringify({ checked: c||checked, eigene: e||eigene })); } catch {}
   };
 
   const toggleCheck = (key) => {
@@ -1897,7 +1897,7 @@ function InspoTab() {
   // Gespeicherte Analysen laden
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("renopilot_inspo");
+      const saved = localStorage.getItem("mystorija_inspo");
       if (saved) setHistory(JSON.parse(saved));
     } catch {}
   }, []);
@@ -1906,7 +1906,7 @@ function InspoTab() {
     const entry = { id: Date.now(), preview, analysis: result, date: new Date().toLocaleDateString("de-DE") };
     setHistory(prev => {
       const next = [entry, ...prev].slice(0, 20); // max 20
-      try { localStorage.setItem("renopilot_inspo", JSON.stringify(next)); } catch {}
+      try { localStorage.setItem("mystorija_inspo", JSON.stringify(next)); } catch {}
       return next;
     });
   }
@@ -1914,7 +1914,7 @@ function InspoTab() {
   function deleteFromHistory(id) {
     setHistory(prev => {
       const next = prev.filter(h => h.id !== id);
-      try { localStorage.setItem("renopilot_inspo", JSON.stringify(next)); } catch {}
+      try { localStorage.setItem("mystorija_inspo", JSON.stringify(next)); } catch {}
       return next;
     });
   }
@@ -2349,7 +2349,7 @@ function PricingModal({ onClose, onSuccess, freeUsed }) {
         {/* Header */}
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
           <div>
-            <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:22, color:C.text }}>RenoPilot upgraden</h2>
+            <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:22, color:C.text }}>Mystorija upgraden</h2>
             <p style={{ fontSize:13, color:C.muted, marginTop:3 }}>
               {freeUsed >= 3 ? "Du hast alle 3 gratis Makeovers genutzt." : `Noch ${3 - freeUsed} gratis Makeover${3-freeUsed!==1?"s":""} übrig.`}
             </p>
@@ -2437,14 +2437,14 @@ export default function Home() {
 
   useEffect(() => {
     // Onboarding
-    try { if (!localStorage.getItem("renopilot_onboarding_done")) setShowOnboarding(true); } catch {}
+    try { if (!localStorage.getItem("mystorija_onboarding_done")) setShowOnboarding(true); } catch {}
 
     // Free usage counter
-    try { setFreeUsed(parseInt(localStorage.getItem("renopilot_free_used") || "0")); } catch {}
+    try { setFreeUsed(parseInt(localStorage.getItem("mystorija_free_used") || "0")); } catch {}
 
     // Subscription aus localStorage
     try {
-      const saved = localStorage.getItem("renopilot_subscription");
+      const saved = localStorage.getItem("mystorija_subscription");
       if (saved) {
         const parsed = JSON.parse(saved);
         setSubscription(parsed);
@@ -2455,7 +2455,7 @@ export default function Home() {
         }).then(r => r.json()).then(data => {
           if (!data.valid) {
             setSubscription(null);
-            localStorage.removeItem("renopilot_subscription");
+            localStorage.removeItem("mystorija_subscription");
           }
         }).catch(() => {});
       }
@@ -2470,7 +2470,7 @@ export default function Home() {
     if (stripeStatus === "success" && plan && sessionId) {
       const sub = { plan, sessionId, activatedAt: Date.now() };
       setSubscription(sub);
-      try { localStorage.setItem("renopilot_subscription", JSON.stringify(sub)); } catch {}
+      try { localStorage.setItem("mystorija_subscription", JSON.stringify(sub)); } catch {}
       // URL säubern
       window.history.replaceState({}, "", "/");
       setShowPricing(false);
@@ -2479,13 +2479,13 @@ export default function Home() {
 
   function finishOnboarding() {
     setShowOnboarding(false);
-    try { localStorage.setItem("renopilot_onboarding_done", "1"); } catch {}
+    try { localStorage.setItem("mystorija_onboarding_done", "1"); } catch {}
   }
 
   function incrementFreeUsed() {
     const next = freeUsed + 1;
     setFreeUsed(next);
-    try { localStorage.setItem("renopilot_free_used", String(next)); } catch {}
+    try { localStorage.setItem("mystorija_free_used", String(next)); } catch {}
   }
 
   function canGenerate() {
@@ -2499,14 +2499,14 @@ export default function Home() {
       {showOnboarding && <Onboarding onDone={finishOnboarding} />}
       {showPricing && <PricingModal onClose={() => setShowPricing(false)} freeUsed={freeUsed} />}
       <Head>
-        <title>RenoPilot – KI Renovierungs-App</title>
+        <title>Mystorija – KI-Renovierung & Inspo</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-        <meta name="description" content="KI-Renovierungsplaner: Foto hochladen, Makeover-Bilder generieren, Ideen und Anleitungen für dein Zuhause." />
+        <meta name="description" content="Mystorija – KI-Renovierung, Inspiration & DIY-Anleitungen für dein Zuhause" />
         <style dangerouslySetInnerHTML={{ __html:globalCSS }} />
       </Head>
       <div style={{ display:"flex", flexDirection:"column", height:"100vh", background:C.bg, maxWidth:600, margin:"0 auto" }}>
         <div style={{ background:C.card, borderBottom:`1px solid ${C.border}`, padding:"13px 18px", display:"flex", alignItems:"center", justifyContent:"space-between", flexShrink:0 }}>
-          <span style={{ fontFamily:"'Playfair Display',serif", fontSize:22, fontWeight:700 }}>Reno<span style={{ color:C.accent }}>Pilot</span></span>
+          <span style={{ fontFamily:"'Playfair Display',serif", fontSize:22, fontWeight:700 }}>My<span style={{ color:C.accent }}>storija</span></span>
           <div style={{ display:"flex", gap:8, alignItems:"center" }}>
             {planLabel ? (
               <span style={{ fontSize:12, color:C.accent, fontWeight:700, background:C.accentBg, padding:"4px 10px", borderRadius:20 }}>{planLabel}</span>
